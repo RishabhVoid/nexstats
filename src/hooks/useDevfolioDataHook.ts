@@ -1,15 +1,15 @@
+import { useArchiveData } from "@/components/ArchiveData";
 import { useMemo, useState } from "react";
-import rawTeams from "@/data/teams.json";
-import rawMembers from "@/data/members.json";
 import type { DevfolioTeamType, DevfolioMemberType } from "@/types/DevfolioTypes";
 
 export type Tab = "members" | "teams";
 
 export function useDevfolioDataHook() {
+    const { teams: rawTeams, members: rawMembers } = useArchiveData();
     const [tab, setTab] = useState<Tab>("members");
 
-    const teams = useMemo(() => (rawTeams as DevfolioTeamType[]) ?? [], []);
-    const members = useMemo(() => (rawMembers as DevfolioMemberType[]) ?? [], []);
+    const teams = useMemo(() => (rawTeams as DevfolioTeamType[]) ?? [], [rawTeams]);
+    const members = useMemo(() => (rawMembers as DevfolioMemberType[]) ?? [], [rawMembers]);
 
     const [mQuery, setMQuery] = useState("");
     const [mStatus, setMStatus] = useState<string[]>([]);

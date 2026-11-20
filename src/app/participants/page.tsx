@@ -1,11 +1,11 @@
 "use client";
 
+import { useArchiveData } from "@/components/ArchiveData";
 import { useEdition } from "@/hooks/useEdition";
 
 import { useSession, signOut } from "next-auth/react";
 import { useTeamCache } from "@/hooks/useTeamCache";
 import Button from "@/components/Button";
-import rawMembersData from "@/data/members.json";
 import { useMemo } from "react";
 import { User } from "lucide-react";
 
@@ -21,6 +21,7 @@ function norm(s?: string) {
 }
 
 export default function Participants() {
+    const { members: rawMembersData } = useArchiveData();
     const { base, archive } = useEdition();
     const { data } = useSession();
     const email = data?.user?.email || null;
@@ -36,7 +37,7 @@ export default function Participants() {
             if (url) map.set(e, url);
         });
         return map;
-    }, [archive]);
+    }, [archive, rawMembersData]);
 
     const getProfileImage = (e: string) => {
         const url = profileByEmail.get(norm(e));
@@ -61,7 +62,7 @@ export default function Participants() {
                         <div className="text-muted text-sm">Participant Dashboard</div>
                     </div>
                     <div className="flex gap-2">
-                        <Button variant="ghost" onClick={() => signOut({ callbackUrl: base || "/" })}>Logout</Button>
+                        <Button variant="ghost" onClick={() => signOut({ callbackUrl: "/" })}>Logout</Button>
                     </div>
                 </div>
             </header>

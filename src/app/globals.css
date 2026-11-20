@@ -335,4 +335,16 @@ button:disabled { opacity:.55; cursor: default; }
     .ledger-banner {padding:23px 18px;}
     .ledger-panel {padding-top:22px;}
 }
-.archive-link { display:inline-block; margin-top:2rem; color:var(--text-muted); font-size:.875rem; text-decoration:underline; text-underline-offset:4px; }
+.event-container { width: min(100%, 1040px); margin-inline: auto; }
+.event-body { padding: clamp(20px,4vw,48px); display: grid; gap: 32px; }
+.event-workspace .ledger-banner { padding-inline: clamp(20px,4vw,48px); }
+.event-body h2 { font: 2rem var(--font-title); }
+.event-actions, .event-breakdowns { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,220px),1fr)); gap: 14px; }
+.event-actions a { display: flex; align-items: center; gap: 12px; padding: 20px; border: 1px solid var(--line-3); border-radius: 8px; background: var(--bg-2); }
+.event-actions a:hover { border-color: var(--brand); }
+.event-actions svg { color: var(--brand); flex-shrink: 0; }
+.event-actions svg:last-child { margin-left: auto; }
+.event-breakdowns { margin-top: 22px; }
+.event-breakdowns h3 { font-weight: 600; margin-bottom: 6px; }
+.event-breakdowns dl > div { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--line-1); }
+.event-body footer a { color: var(--text-2); text-decoration: underline; text-underline-offset: 4px; }

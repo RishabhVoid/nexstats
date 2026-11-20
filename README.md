@@ -82,9 +82,9 @@ On-site registration writes to MongoDB. The participant dashboard reads from Mon
 
 ## NexHack 2.0 and first-edition archive
 
-The organizer dashboard at `/admin` reads the All Data Google workbook. Choose a worksheet, search, select an editable cell, and save. Open dashboards refresh every 30 seconds and when the tab regains focus. Registration uses the current Teams Data roster and stores private check-in details in MongoDB. The current workbook has no columns for identity checks or emergency contacts.
+Candidate sign-in is selected on the public home page. The organizer dashboard at `/admin` shows the live roster and links to roster browsing, team registration, and registration stats. Use Edit workbook at `/admin/workbook` to choose a worksheet, search, select an editable cell, and save. Open dashboards refresh every 30 seconds and when the tab regains focus. Registration uses the current Teams Data roster and stores private check-in details in MongoDB. The current workbook has no columns for identity checks or emergency contacts.
 
-The original Minecraft edition starts at `/archive-nexhack-one`. Its Devfolio statistics use the bundled first-edition exports. Its registration, status changes, participant lookup, and check-in recovery use the separate MongoDB collection `teams_nexhack_one`. Original attendance reads the surviving Team Members worksheet. Its registration form syncs attendance and check-in flags back to that worksheet. If the sheet write fails, retry the same registration after correcting workbook access.
+Only signed-in administrators can open the original Minecraft edition at `/archive-nexhack-one` or access its APIs. Its Devfolio statistics use first-edition exports loaded after authorization. Its registration, status changes, and check-in recovery use the separate MongoDB collection `teams_nexhack_one`. Original attendance reads the surviving Team Members worksheet. Its registration form syncs attendance and check-in flags back to that worksheet. If the sheet write fails, retry the same registration after correcting workbook access.
 
 ### Run on the configured Mac
 

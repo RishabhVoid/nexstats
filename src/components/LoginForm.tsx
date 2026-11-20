@@ -32,7 +32,7 @@ export default function LoginForm() {
                     onClick={() => onChangeRole("participant")}
                     className={clsx("mc-btn w-full", role === "participant" ? "mc-btn--primary" : "mc-btn--ghost")}
                 >
-                    Participant
+                    Candidate
                 </button>
                 <button
                     type="button"

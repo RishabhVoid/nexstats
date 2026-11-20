@@ -1,8 +1,7 @@
 "use client";
 
+import { useArchiveData } from "@/components/ArchiveData";
 import { useMemo, useState } from "react";
-import teamsJson from "@/data/teams.json";
-import membersJson from "@/data/members.json";
 import DevfolioHeader from "@/components/DevfolioHeader";
 import Toggle from "@/components/Toggle";
 import clsx from "clsx";
@@ -39,11 +38,12 @@ function normalizeTeamsFromMembers(list: RawMember[]): RawTeam[] {
 }
 
 export default function Register() {
+    const { teams: teamsJson, members: membersJson } = useArchiveData();
     const source: RawTeam[] = useMemo(() => {
         const t = (teamsJson as any[])?.map?.((x: any) => ({ ...x, members: x.members || [] })) || [];
         if (t.length > 0) return t as RawTeam[];
         return normalizeTeamsFromMembers((membersJson as any[]) as RawMember[]);
-    }, []);
+    }, [teamsJson, membersJson]);
 
     const [query, setQuery] = useState("");
     const [teamName, setTeamName] = useState("");

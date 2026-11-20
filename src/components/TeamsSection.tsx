@@ -1,9 +1,9 @@
 "use client";
 
+import { useArchiveData } from "@/components/ArchiveData";
 import Input from "@/components/Input";
 import Chip from "@/components/Chip";
 import Toggle from "@/components/Toggle";
-import rawMembers from "@/data/members.json";
 import type { DevfolioTeamType, DevfolioMemberType } from "@/types/DevfolioTypes";
 import { Dispatch, SetStateAction } from "react";
 
@@ -55,6 +55,7 @@ export default function TeamsSection({
     tChecked,
     setTChecked,
 }: TeamsSectionProps) {
+    const { members: rawMembers } = useArchiveData();
     const handleCardClick = (id: string) => {
         if (!tCountable) return;
         setTChecked((prev) => {

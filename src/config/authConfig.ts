@@ -2,7 +2,7 @@ import type { AuthOptions, Session, User } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 import Credentials from "next-auth/providers/credentials";
 import { connectMongo } from "@/lib/mongo";
-import { ArchiveTeamModel, TeamModel } from "@/models/TeamModel";
+import { TeamModel } from "@/models/TeamModel";
 import crypto from "crypto";
 
 type Role = "organizer" | "participant";
@@ -41,7 +41,7 @@ function safeEq(a: string, b: string) {
     return crypto.timingSafeEqual(ah, bh);
 }
 
-async function verifyUser(email: string, password: string, role: Role, archive: boolean) {
+async function verifyUser(email: string, password: string, role: Role) {
     if (role === "organizer") {
         const list = parseOrganizers();
         const found = list.find((o) => o.email === email && safeEq(o.password, password));
@@ -49,8 +49,7 @@ async function verifyUser(email: string, password: string, role: Role, archive: 
         return { id: "org_" + crypto.createHash("sha1").update(email).digest("hex").slice(0, 12), name: "Organizer", email, role: "organizer" as Role };
     } else {
         await connectMongo();
-        const model = archive ? ArchiveTeamModel : TeamModel;
-        const team = await model.findOne({ emails: email }).lean();
+        const team = await TeamModel.findOne({ emails: email }).lean();
         if (!team) return null;
         return { id: "usr_" + crypto.createHash("sha1").update(email).digest("hex").slice(0, 12), name: email.split("@")[0], email, role: "participant" as Role };
     }
@@ -65,8 +64,8 @@ export const AuthConfig: AuthOptions = {
                 const email = (credentials?.email ?? "").trim().toLowerCase();
                 const role: Role = credentials?.role === "organizer" ? "organizer" : "participant";
                 const password = role === "organizer" ? credentials?.password ?? "" : "";
-                if (!email) return null;
-                const user = await verifyUser(email, password, role, credentials?.edition === "one");
+                if (!email || (credentials?.edition === "one" && role !== "organizer")) return null;
+                const user = await verifyUser(email, password, role);
                 if (!user) return null;
                 return { id: user.id, name: user.name, email: user.email, role: user.role, edition: credentials?.edition === "one" ? "one" : "two" } as User;
             },

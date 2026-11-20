@@ -11,7 +11,7 @@ export default function DevfolioHeader() {
         <div className="mc-font relative top-2 text-xl sm:text-2xl lg:text-3xl">NexStats</div>
         <div className="flex gap-2">
             <Link className="mc-btn mc-btn--ghost text-xs" href={base + "/admin"}>Back to Admin</Link>
-            <Button size="sm" variant="ghost" onClick={() => signOut({callbackUrl: base || "/"})}>Logout</Button>
+            <Button size="sm" variant="ghost" onClick={() => signOut({callbackUrl: "/"})}>Logout</Button>
         </div>
     </header>;
 }

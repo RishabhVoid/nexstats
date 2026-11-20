@@ -28,7 +28,7 @@ function mapAuthError(err?: string): string {
 export default function useAuthHook(edition: "one" | "two" = "two") {
     const prefix = edition === "one" ? "/archive-nexhack-one" : "";
     const router = useRouter();
-    const [role, setRole] = useState<Role>(edition === "one" ? "participant" : "organizer");
+    const [role, setRole] = useState<Role>("participant");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [errors, setErrors] = useState<FieldErrors>({});

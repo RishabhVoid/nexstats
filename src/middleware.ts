@@ -5,18 +5,21 @@ import { staffRole } from "@/lib/access";
 const archiveBase = "/archive-nexhack-one";
 export default withAuth(req => {
     const url = req.nextUrl;
-    const original = url.pathname;
-    const archiveApi = original.startsWith("/api" + archiveBase + "/");
-    const archive = archiveApi || original === archiveBase || original.startsWith(archiveBase + "/");
-    const base = archive ? archiveBase : "";
-    const path = archiveApi ? "/api" + original.slice(4 + archiveBase.length) : original.slice(base.length) || "/";
-    if (!archive && /\.(?:png|jpg|jpeg|gif|webp|svg|ico|avif|ttf|woff2?)$/i.test(path)) return NextResponse.next();
-    const api = path.startsWith("/api/");
+    const path = url.pathname;
+    const archive = [archiveBase, "/api" + archiveBase, "/admin/archive"].some(prefix =>
+        path === prefix || path.startsWith(prefix + "/"));
     const token = req.nextauth.token;
     const role = token?.role === "organizer" ? staffRole(token.email) : token?.role === "participant" ? "participant" : undefined;
-    const participantEditionMatches = role !== "participant" || archive === (token?.edition === "one");
+    if (archive) {
+        const headers = { "X-Robots-Tag": "noindex, nofollow", "Cache-Control": "private, no-store" };
+        if (role !== "admin") return new NextResponse(null, { status: 404, headers });
+        return NextResponse.next({ headers });
+    }
+    if (/\.(?:png|jpg|jpeg|gif|webp|svg|ico|avif|ttf|woff2?)$/i.test(path)) return NextResponse.next();
+    const api = path.startsWith("/api/");
+    const participantEditionMatches = role !== "participant" || token?.edition !== "one";
     const home = role === "admin" ? "/admin" : role === "registerer" ? "/admin/register-team" : "/participants";
-    const redirect = (to: string) => NextResponse.redirect(new URL(base + to, url.origin));
+    const redirect = (to: string) => NextResponse.redirect(new URL(to, url.origin));
     if (path === "/") return role && participantEditionMatches ? redirect(home) : NextResponse.next();
     if (!role || !participantEditionMatches) {
         return api ? NextResponse.json({ message: "Sign in required" }, { status:401 }) : redirect("/");

@@ -1,9 +1,9 @@
 "use client";
 
+import { useArchiveData } from "@/components/ArchiveData";
 import Input from "@/components/Input";
 import Chip from "@/components/Chip";
 import Toggle from "@/components/Toggle";
-import rawMembers from "@/data/members.json";
 import type { DevfolioMemberType } from "@/types/DevfolioTypes";
 
 export default function MembersSection({
@@ -21,6 +21,7 @@ export default function MembersSection({
     mChecked,
     setMChecked,
 }: any) {
+    const { members: rawMembers } = useArchiveData();
     const statusLabelMap: Record<string, string> = {
         accept: "Accepted",
         accept_sent: "Approved",

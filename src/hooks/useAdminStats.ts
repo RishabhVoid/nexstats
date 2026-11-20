@@ -1,9 +1,8 @@
 "use client";
 
+import { useArchiveData } from "@/components/ArchiveData";
 import { useMemo } from "react";
 import type { DevfolioTeamType, DevfolioMemberType } from "@/types/DevfolioTypes";
-import rawTeams from "@/data/teams.json";
-import rawMembers from "@/data/members.json";
 
 export type Slice = { label: string; value: number; color: string; title?: string };
 export type DonutData = { title: string; sum: number; gradient: string; legend: Slice[] };
@@ -46,8 +45,9 @@ const mapMember = (s?: string | null) => {
 };
 
 export function useAdminStats() {
-    const teams = useMemo(() => toTeams(rawTeams), []);
-    const members = useMemo(() => toMembers(rawMembers), []);
+    const { teams: rawTeams, members: rawMembers } = useArchiveData();
+    const teams = useMemo(() => toTeams(rawTeams), [rawTeams]);
+    const members = useMemo(() => toMembers(rawMembers), [rawMembers]);
 
     const totals = useMemo(() => {
         const totalTeams = teams.length;

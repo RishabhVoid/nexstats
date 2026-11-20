@@ -1,9 +1,9 @@
 "use client";
 
+import { useArchiveData } from "@/components/ArchiveData";
 import { useEdition } from "@/hooks/useEdition";
 
 import { useEffect, useMemo, useState } from "react";
-import membersJson from "@/data/members.json";
 import StatCard from "@/components/StatCard";
 import DevfolioHeader from "@/components/DevfolioHeader";
 
@@ -35,6 +35,7 @@ type Team = {
 };
 
 export default function Preview() {
+    const { members: membersJson } = useArchiveData();
     const { api, archive } = useEdition();
     const [loading, setLoading] = useState(true);
     const [teams, setTeams] = useState<Team[]>([]);
@@ -52,7 +53,7 @@ export default function Preview() {
             if (g) map.set(e, g);
         }
         return map;
-    }, [archive]);
+    }, [archive, membersJson]);
 
     useEffect(() => {
         let alive = true;

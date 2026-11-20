@@ -24,7 +24,7 @@ export default function Admin() {
                     <div className="flex items-center gap-4">
                         <Link className="text-sm underline" href="/admin">NexHack 2.0</Link>
                         <button
-                            onClick={() => signOut({ callbackUrl: "/archive-nexhack-one" })}
+                            onClick={() => signOut({ callbackUrl: "/" })}
                             className="cursor-pointer rounded bg-[var(--danger)] hover:bg-[var(--danger-hover)] pixel"
                             aria-label="Sign Out"
                             title="Sign Out"
