@@ -1,5 +1,7 @@
 "use client";
 
+import { useEdition } from "@/hooks/useEdition";
+
 import { useEffect, useMemo, useState } from "react";
 import membersJson from "@/data/members.json";
 import StatCard from "@/components/StatCard";
@@ -33,6 +35,7 @@ type Team = {
 };
 
 export default function Preview() {
+    const { api, archive } = useEdition();
     const [loading, setLoading] = useState(true);
     const [teams, setTeams] = useState<Team[]>([]);
     const [query, setQuery] = useState("");
@@ -41,7 +44,7 @@ export default function Preview() {
 
     const genderByEmail = useMemo(() => {
         const map = new Map<string, string>();
-        const list = (membersJson as DevfolioMember[]) || [];
+        const list = archive && (membersJson as DevfolioMember[]) || [];
         for (const m of list) {
             const e = (m.email || "").toLowerCase().trim();
             if (!e) continue;
@@ -49,13 +52,13 @@ export default function Preview() {
             if (g) map.set(e, g);
         }
         return map;
-    }, []);
+    }, [archive]);
 
     useEffect(() => {
         let alive = true;
         (async () => {
             try {
-                const r = await fetch("/api/teams?limit=2000", { cache: "no-store" });
+                const r = await fetch(api + "/teams?limit=2000", { cache: "no-store" });
                 const j = await r.json();
                 if (!r.ok) throw new Error();
                 if (!alive) return;
@@ -69,7 +72,7 @@ export default function Preview() {
         return () => {
             alive = false;
         };
-    }, []);
+    }, [api]);
 
     const derived = useMemo(() => {
         const totalTeams = teams.length;
@@ -124,7 +127,7 @@ export default function Preview() {
         if (!dlg.team || !dlg.state) return;
         setDlg(s => ({ ...s, saving: true }));
         try {
-            const r = await fetch("/api/teams/change-status", {
+            const r = await fetch(api + "/teams/change-status", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ teamId: dlg.team.id, state: dlg.state, note: dlg.note })
@@ -160,10 +163,10 @@ export default function Preview() {
                 <section className="grid [grid-template-columns:repeat(auto-fit,minmax(220px,1fr))] gap-2 sm:gap-3">
                     <StatCard label="Teams" value={derived.totalTeams} />
                     <StatCard label="Members" value={derived.totalMembers} />
-                    <StatCard label="Female" value={derived.female} />
+                    {archive && <><StatCard label="Female" value={derived.female} />
                     <StatCard label="Male" value={derived.male} />
                     <StatCard label="Other" value={derived.other} />
-                    <StatCard label="Unknown" value={derived.unknown} />
+                    <StatCard label="Unknown" value={derived.unknown} /></>}
                     <StatCard label="Avg Team Size" value={derived.totalTeams ? Math.round((derived.totalMembers / derived.totalTeams) * 10) / 10 : 0} />
                     <StatCard label="With Notes" value={teams.filter(t => (t.notes || "").trim().length > 0).length} />
                     <StatCard label="Teams with 2" value={derived.bySize[2] || 0} />
@@ -179,7 +182,7 @@ export default function Preview() {
                             <button onClick={() => setQuery("")} className="mc-btn mc-btn--ghost">Clear</button>
                         </div>
                         <div className="flex gap-2 items-stretch relative">
-                            <div className="mc-font relative top-1 text-sm self-center">Gender</div>
+                            {archive && <><div className="mc-font relative top-1 text-sm self-center">Gender</div>
                             <div className="relative w-full">
                                 <select value={genderFilter} onChange={e => setGenderFilter(e.target.value as any)} className="mc-input pixel w-full appearance-none pr-10">
                                     <option value="all">All</option>
@@ -191,7 +194,7 @@ export default function Preview() {
                                 <svg className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-2" viewBox="0 0 20 20" fill="currentColor">
                                     <path d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.17l3.71-2.94a.75.75 0 1 1 .94 1.16l-4.18 3.31a.75.75 0 0 1-.94 0L5.21 8.39a.75.75 0 0 1 .02-1.18z" />
                                 </svg>
-                            </div>
+                            </div></>}
                             <div className="mc-input pixel w-full flex items-center justify-between">
                                 <span className="text-xs text-muted">Teams</span>
                                 <span className="text-base">{filteredTeams.length}</span>

@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+
 import "./globals.css";
 import SessionWrapper from "@/components/SessionWrapper";
 
-const inter = Inter({ subsets: ["latin"] });
+
 
 export const metadata: Metadata = {
-    title: "NexStats",
-    description: "For Nexhack Statistics",
+    title: "NexStats · NexHack 2.0",
+    description: "NexHack event operations at Geeta University",
 };
 
 export default function RootLayout({
@@ -17,7 +17,7 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
-            <body className={inter.className}>
+            <body >
                 <SessionWrapper>
                     {children}
                 </SessionWrapper>

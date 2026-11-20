@@ -1,8 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import teamsJson from "@/data/teams.json";
-import membersJson from "@/data/members.json";
+import { useEffect, useMemo, useState } from "react";
 import DevfolioHeader from "@/components/DevfolioHeader";
 import Toggle from "@/components/Toggle";
 import clsx from "clsx";
@@ -26,23 +24,17 @@ function toName(m: RawMember) {
     return full || (m.username || "");
 }
 
-function normalizeTeamsFromMembers(list: RawMember[]): RawTeam[] {
-    const map = new Map<string, RawTeam>();
-    for (const m of list || []) {
-        const tu = String(m.team_uuid || m.team?.uuid || "").trim();
-        const tn = String(m.team_name || m.team?.name || "").trim() || "Unnamed Team";
-        const key = tu || tn.toLowerCase();
-        if (!map.has(key)) map.set(key, { team_uuid: tu || key, team_name: tn, team_status: m.team?.status || null, members: [] });
-        map.get(key)!.members.push(m);
-    }
-    return Array.from(map.values());
-}
-
 export default function Register() {
-    const source: RawTeam[] = useMemo(() => {
-        const t = (teamsJson as any[])?.map?.((x: any) => ({ ...x, members: x.members || [] })) || [];
-        if (t.length > 0) return t as RawTeam[];
-        return normalizeTeamsFromMembers((membersJson as any[]) as RawMember[]);
+    const [source, setSource] = useState<RawTeam[]>([]);
+    const [rosterError, setRosterError] = useState("");
+    useEffect(() => {
+        const controller = new AbortController();
+        fetch("/api/admin/register-team/roster", { signal: controller.signal, cache: "no-store" })
+            .then(async res => {
+                if (!res.ok) throw new Error();
+                setSource((await res.json()).teams);
+            }).catch(() => { if (!controller.signal.aborted) setRosterError("Roster unavailable. Refresh to retry."); });
+        return () => controller.abort();
     }, []);
 
     const [query, setQuery] = useState("");
@@ -231,8 +223,8 @@ export default function Register() {
             const j = await r.json();
             if (!r.ok) setMsg({ err: j?.message || "Failed to save" });
             else {
-                setMsg({ ok: "Team registered" });
                 resetForm();
+                setMsg({ ok: "Team registered" });
             }
         } catch {
             setMsg({ err: "Failed to save" });
@@ -253,6 +245,7 @@ export default function Register() {
             )}
 
             <div className={`w-full px-4 sm:px-6 py-8 sm:py-12 sm:pt-6 ${busy ? "pointer-events-none select-none opacity-70" : ""}`}>
+                {rosterError && <p role="alert">{rosterError}</p>}
                 <DevfolioHeader></DevfolioHeader>
                 <div className="mb-8 flex flex-wrap items-end gap-4"></div>
 
@@ -275,7 +268,7 @@ export default function Register() {
                                             tryAutoPick();
                                         }
                                     }}
-                                    placeholder="Team name, leader name, email, or phone"
+                                    placeholder="Team or member name"
                                     className="mc-input w-full pixel"
                                     disabled={busy}
                                     autoComplete="off"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 
@@ -25,9 +25,10 @@ function mapAuthError(err?: string): string {
     return "Something went wrong while signing in.";
 }
 
-export default function useAuthHook() {
+export default function useAuthHook(edition: "one" | "two" = "two") {
+    const prefix = edition === "one" ? "/archive-nexhack-one" : "";
     const router = useRouter();
-    const [role, setRole] = useState<Role>("participant");
+    const [role, setRole] = useState<Role>(edition === "one" ? "participant" : "organizer");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [errors, setErrors] = useState<FieldErrors>({});
@@ -35,7 +36,7 @@ export default function useAuthHook() {
     const submittingRef = useRef(false);
     const mountedRef = useRef(true);
 
-    const isValid = useMemo(() => {
+    const validate = useCallback(() => {
         const e: FieldErrors = {};
         const em = email.trim();
         if (!em) e.email = "Email is required";
@@ -54,7 +55,7 @@ export default function useAuthHook() {
     }, []);
 
     const submit = useCallback(async () => {
-        if (!isValid) return false;
+        if (!validate()) return false;
         if (submittingRef.current) return false;
         submittingRef.current = true;
         setLoading(true);
@@ -64,11 +65,11 @@ export default function useAuthHook() {
                 redirect: false,
                 email: email.trim(),
                 password: role === "organizer" ? password : "",
-                role,
-                callbackUrl: role === "organizer" ? "/admin" : "/my",
+                role, edition,
+                callbackUrl: prefix + (role === "organizer" ? "/admin" : "/participants"),
             });
             if (res && res.ok && !res.error) {
-                router.push(role === "organizer" ? "/admin" : "/my");
+                router.push(prefix + (role === "organizer" ? "/admin" : "/participants"));
                 router.refresh?.();
                 return true;
             }
@@ -81,9 +82,9 @@ export default function useAuthHook() {
             if (mountedRef.current) setLoading(false);
             submittingRef.current = false;
         }
-    }, [email, password, role, isValid, router]);
+    }, [email, password, role, edition, prefix, validate, router]);
 
-    useMemo(() => {
+    useEffect(() => {
         mountedRef.current = true;
         return () => {
             mountedRef.current = false;

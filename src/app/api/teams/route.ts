@@ -2,9 +2,10 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { AuthConfig } from "@/config/authConfig";
 import { connectMongo } from "@/lib/mongo";
-import { TeamModel } from "@/models/TeamModel";
+import { syncArchiveCheckIn } from "@/lib/archiveCheckIn";
+import { ArchiveTeamModel, editionTeamModel } from "@/models/TeamModel";
 import type { TeamType } from "@/types/TeamType";
-import { updateTeamFlagsByName } from "@/lib/googleSheets";
+
 
 type MemberData = {
     email: string;
@@ -30,6 +31,7 @@ function normalizeEmails(input: string[] = []): string[] {
 }
 
 export async function GET(req: Request) {
+    const TeamModel = editionTeamModel(req);
     const session = await getServerSession(AuthConfig);
     const role = (session?.user as any)?.role as "organizer" | "participant" | undefined;
     if (!session || role !== "organizer") {
@@ -81,6 +83,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+    const TeamModel = editionTeamModel(req);
     const session = await getServerSession(AuthConfig);
     const role = (session?.user as any)?.role as "organizer" | "participant" | undefined;
     if (!session || role !== "organizer") {
@@ -140,6 +143,16 @@ export async function POST(req: Request) {
         const nameClash = await TeamModel.findOne({ name })
             .collation({ locale: "en", strength: 2 })
             .lean();
+        if (nameClash?.archiveSheetPending && TeamModel === ArchiveTeamModel &&
+            allEmails.length === nameClash.emails.length && allEmails.every(e => nameClash.emails.includes(e))) {
+            try {
+                await syncArchiveCheckIn(nameClash);
+                await TeamModel.updateOne({ _id: nameClash._id }, { $set: { archiveSheetPending: false } });
+                return NextResponse.json({ team: { id: String(nameClash._id), name } }, { status: 200 });
+            } catch {
+                return NextResponse.json({ message: "Registration is saved. Archive sheet sync is pending. Check workbook access and retry this registration." }, { status: 503 });
+            }
+        }
         if (nameClash) {
             return NextResponse.json({ message: "Team name already exists" }, { status: 409 });
         }
@@ -175,17 +188,16 @@ export async function POST(req: Request) {
             aadhar_id,
             kit_distribution,
             emergency_contact,
+            archiveSheetPending: TeamModel === ArchiveTeamModel,
             status: { state: "active", note: "" }
         });
-        try {
-            const resUpdate = await updateTeamFlagsByName({
-                name: doc.name,
-                college_id: !!doc.college_id,
-                aadhar_id: !!doc.aadhar_id,
-                kit_distribution: !!doc.kit_distribution,
-                emergency_number: emergency_contact
-            });
-        } catch(error: any) {
+        if (TeamModel === ArchiveTeamModel) {
+            try {
+                await syncArchiveCheckIn(doc);
+                await TeamModel.updateOne({ _id: doc._id }, { $set: { archiveSheetPending: false } });
+            } catch {
+                return NextResponse.json({ message: "Registration is saved. Archive sheet sync is pending. Check workbook access and retry this registration." }, { status: 503 });
+            }
         }
         const team: TeamType = {
             id: String(doc._id),

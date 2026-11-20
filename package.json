@@ -4,12 +4,15 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:local": "node scripts/local-dev.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
+    "@vercel/oidc": "^4.0.9",
     "clsx": "^2.1.1",
+    "google-auth-library": "^10.5.0",
     "googleapis": "^164.1.0",
     "lucide-react": "^0.548.0",
     "mongoose": "^8.19.2",

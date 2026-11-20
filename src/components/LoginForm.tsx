@@ -19,14 +19,16 @@ export default function LoginForm() {
     );
 
     return (
-        <div className="mc-card p-6 sm:p-8 w-full max-w-[460px]">
+        <div className="signin w-full max-w-[460px]">
             <div className="mb-6">
-                <div className="mc-font text-2xl">Welcome to NexHack!</div>
-                <div className="text-muted text-sm">Sign in to your NexHack stats</div>
+                <p className="eyebrow">NexStats · Event access</p>
+                <h2 className="mc-font">Sign in</h2>
+                <div className="text-muted text-sm">{role === "organizer" ? "Open the organizer workspace." : "View your registered team."}</div>
             </div>
             <div className="grid grid-cols-2 gap-2 mb-6">
                 <button
                     type="button"
+                    aria-pressed={role === "participant"}
                     onClick={() => onChangeRole("participant")}
                     className={clsx("mc-btn w-full", role === "participant" ? "mc-btn--primary" : "mc-btn--ghost")}
                 >
@@ -34,6 +36,7 @@ export default function LoginForm() {
                 </button>
                 <button
                     type="button"
+                    aria-pressed={role === "organizer"}
                     onClick={() => onChangeRole("organizer")}
                     className={clsx("mc-btn w-full", role === "organizer" ? "mc-btn--primary" : "mc-btn--ghost")}
                 >
@@ -46,7 +49,7 @@ export default function LoginForm() {
                     <Input
                         id="email"
                         type="email"
-                        placeholder="alex@blockcraft.dev"
+                        placeholder="name@example.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         tone={errors.email ? "error" : "default"}
@@ -64,7 +67,7 @@ export default function LoginForm() {
                         <Input
                             id="password"
                             type="password"
-                            placeholder="Your secret"
+                            placeholder="Your password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             tone={errors.password ? "error" : "default"}
@@ -83,7 +86,7 @@ export default function LoginForm() {
                     {role === "organizer" ? "Sign in as Organizer" : "Continue"}
                 </Button>
             </form>
-            <div className="mt-6 text-xs text-muted">By continuing you agree to the internal usage policy.</div>
+
         </div>
     );
 };

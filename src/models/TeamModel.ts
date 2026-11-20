@@ -45,6 +45,7 @@ const TeamSchema = new Schema(
         aadhar_id: { type: Boolean, required: true },
         kit_distribution: { type: Boolean, required: true },
         emergency_contact: { type: String, required: true },
+        archiveSheetPending: { type: Boolean, default: false },
         notes: { type: String, trim: true, maxlength: 1000 },
 
         status: { type: TeamStatusSchema, default: { state: "active", note: "" } }
@@ -70,3 +71,7 @@ TeamSchema.pre("validate", function (next) {
 
 export type Team = InferSchemaType<typeof TeamSchema>;
 export const TeamModel: Model<Team> = mongoose.models.Team || mongoose.model<Team>("Team", TeamSchema);
+export const ArchiveTeamModel: Model<Team> = mongoose.models.ArchiveTeam || mongoose.model<Team>("ArchiveTeam", TeamSchema, "teams_nexhack_one");
+export function editionTeamModel(req: Request) {
+    return new URL(req.url).pathname.startsWith("/api/archive-nexhack-one/") ? ArchiveTeamModel : TeamModel;
+}

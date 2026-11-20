@@ -1,32 +1,17 @@
 "use client";
 
-import Button from "@/components/Button";
+import Link from "next/link";
 import { signOut } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useEdition } from "@/hooks/useEdition";
+import Button from "@/components/Button";
 
 export default function DevfolioHeader() {
-    
-    const router = useRouter();
-
-    const signOutHandle = () => {
-        signOut().then(() => {
-            router.push("/");
-        });
-    };
-    
-    return (
-        <header className="flex sm:items-center justify-between gap-3 p-2 sm:p-0">
-            <div>
-                <div className="mc-font relative top-2 text-xl sm:text-2xl lg:text-3xl">NexStats</div>
-            </div>
-            <div className="flex gap-2">
-                <Button size="sm" variant="ghost">
-                    <a href="/admin" className="text-xs">Back to Admin</a>
-                </Button>
-                <Button size="sm" variant="ghost" onClick={signOutHandle}>
-                    <a href="/admin" className="text-xs">Logout</a>
-                </Button>
-            </div>
-        </header>
-    );
-};
+    const { base } = useEdition();
+    return <header className="flex sm:items-center justify-between gap-3 p-2 sm:p-0">
+        <div className="mc-font relative top-2 text-xl sm:text-2xl lg:text-3xl">NexStats</div>
+        <div className="flex gap-2">
+            <Link className="mc-btn mc-btn--ghost text-xs" href={base + "/admin"}>Back to Admin</Link>
+            <Button size="sm" variant="ghost" onClick={() => signOut({callbackUrl: base || "/"})}>Logout</Button>
+        </div>
+    </header>;
+}

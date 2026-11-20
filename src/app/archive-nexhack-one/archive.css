@@ -1,0 +1,50 @@
+@font-face {
+    font-family: "Minecraftia";
+    src: url("/fonts/Minecraftia-Regular.ttf") format("truetype");
+    font-display: swap;
+}
+.archive-one {
+        --bg: #0b0f14;
+        --bg-2: #0f141b;
+        --bg-3: #131a23;
+
+        --text: #f3f7ff;
+        --text-2: #b7c2d6;
+        --text-muted: #8b99ad;
+        --text-inverse: #0b0f14;
+
+        --line-1: #162130;
+        --line-2: #1c293a;
+        --line-3: #27384e;
+
+        --brand: #3ba55d;
+        --brand-600: #2f8a4c;
+        --brand-700: #246d3b;
+        --brand-300: #6fd38e;
+        --brand-200: #8fe1a6;
+
+        --gold: #f5c542;
+        --red: #e25555;
+        --blue: #4a72d9;
+        --purple: #9d65ff;
+
+        --success: var(--brand);
+        --warning: var(--gold);
+        --error: var(--red);
+        --info: var(--blue);
+
+        --shadow-soft: 0 8px 24px rgba(0, 0, 0, .35);
+        --shadow-strong: 0 10px 30px rgba(0, 0, 0, .55);
+        --radius-sm: 6px;
+        --radius-md: 10px;
+        --radius-lg: 14px;
+        --gap: 14px;
+        --focus: 0 0 0 3px rgba(59, 165, 93, .2);
+    --font-title: "Minecraftia", monospace;
+    min-height: 100dvh;
+    background: var(--bg);
+    color: var(--text);
+}
+.archive-one .pixel {border-radius:4px;box-shadow:0 0 0 2px #0b1218 inset,0 0 0 3px #00000055 inset,0 2px 0 #00000099;}
+.archive-one .mc-input, .archive-one .role {background:#0b1218;}
+.archive-one .mc-btn:not(.mc-btn--primary):not(.mc-btn--danger):not(.mc-btn--ghost) {background:#0e151c;}

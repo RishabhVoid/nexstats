@@ -1,5 +1,7 @@
 "use client";
 
+import { useEdition } from "@/hooks/useEdition";
+
 import { useSession, signOut } from "next-auth/react";
 import { useTeamCache } from "@/hooks/useTeamCache";
 import Button from "@/components/Button";
@@ -19,12 +21,14 @@ function norm(s?: string) {
 }
 
 export default function Participants() {
+    const { base, archive } = useEdition();
     const { data } = useSession();
     const email = data?.user?.email || null;
     const { team, loading, error, clearAll, refresh } = useTeamCache(email);
 
     const profileByEmail = useMemo(() => {
         const map = new Map<string, string>();
+        if (!archive) return map;
         (rawMembersData as RawMember[]).forEach(m => {
             const e = norm(m.email);
             if (!e) return;
@@ -32,7 +36,7 @@ export default function Participants() {
             if (url) map.set(e, url);
         });
         return map;
-    }, []);
+    }, [archive]);
 
     const getProfileImage = (e: string) => {
         const url = profileByEmail.get(norm(e));
@@ -57,7 +61,7 @@ export default function Participants() {
                         <div className="text-muted text-sm">Participant Dashboard</div>
                     </div>
                     <div className="flex gap-2">
-                        <Button variant="ghost" onClick={() => signOut({ callbackUrl: "/" })}>Logout</Button>
+                        <Button variant="ghost" onClick={() => signOut({ callbackUrl: base || "/" })}>Logout</Button>
                     </div>
                 </div>
             </header>

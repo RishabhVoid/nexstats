@@ -1,61 +1,52 @@
-import { google } from "googleapis";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
+import { getVercelOidcToken } from "@vercel/oidc";
+import { GoogleAuth, IdentityPoolClient, OAuth2Client } from "google-auth-library";
+import { sheets_v4 } from "googleapis/build/src/apis/sheets";
 
-const SHEET_ID = "1FWjZDcYJj2cmUesIZJgE_h7IWXd0pOp1H8kaZeC1WTA";
-const SHEET_TAB = "Team Members";
+const scope = "https://www.googleapis.com/auth/spreadsheets";
+const run = promisify(execFile);
+let tokenRequest: Promise<OAuth2Client> | undefined;
+let expires = 0;
 
-const auth = new google.auth.GoogleAuth({
-    credentials: {
-        client_email: process.env.GOOGLE_CLIENT_EMAIL as string,
-        private_key: (process.env.GOOGLE_PRIVATE_KEY as string)?.replace(/\\n/g, "\n"),
-        private_key_id: process.env.GOOGLE_PRIVATE_KEY_ID as string,
-        project_id: process.env.GOOGLE_PROJECT_ID as string
-    },
-    scopes: ["https://www.googleapis.com/auth/spreadsheets"]
-});
-
-async function getSheets() {
-    return google.sheets({ version: "v4", auth });
-}
-
-async function readRange(range: string) {
-    const sheets = await getSheets();
-    const { data } = await sheets.spreadsheets.values.get({
-        spreadsheetId: SHEET_ID,
-        range
-    });
-    return data.values ?? [];
-}
-
-async function findRowByTeamName(teamName: string): Promise<number | null> {
-    const rows = await readRange(`${SHEET_TAB}!B:B`);
-    for (let i = 0; i < rows.length; i++) {
-        const v = String(rows[i]?.[0] ?? "").trim();
-        if (v && v.toLowerCase() === teamName.toLowerCase()) return i + 1;
+async function localIdentity(account: string) {
+    if (!tokenRequest || Date.now() >= expires) {
+        expires = Date.now() + 45 * 60_000;
+        tokenRequest = run("gcloud", ["auth", "print-access-token",
+            "--impersonate-service-account=" + account, "--scopes=" + scope], { timeout: 25_000 })
+            .then(({ stdout }) => {
+                const auth = new OAuth2Client();
+                auth.setCredentials({ access_token: stdout.trim() });
+                return auth;
+            }).catch(() => {
+                tokenRequest = undefined;
+                throw new Error("Local Google authorization failed");
+            });
     }
-    return null;
+    return tokenRequest;
 }
 
-export async function updateTeamFlagsByName(input: {
-    name: string;
-    college_id: boolean;
-    aadhar_id: boolean;
-    kit_distribution: boolean;
-    emergency_number: string;
-}) {
-    const row = await findRowByTeamName(input.name);
-    if (!row) throw new Error(`Team '${input.name}' not found`);
-    const sheets = await getSheets();
-    const values = [[
-        "Present",
-        input.college_id ? "Yes" : "No",
-        input.aadhar_id ? "Yes" : "No",
-        input.kit_distribution ? "Yes" : "No",
-        input.emergency_number
-    ]];
-    await sheets.spreadsheets.values.update({
-        spreadsheetId: SHEET_ID,
-        range: `${SHEET_TAB}!H${row}:L${row}`,
-        valueInputOption: "USER_ENTERED",
-        requestBody: { values }
-    });
+export async function workbookClient() {
+    const spreadsheetId = process.env.NEXSTATS_SPREADSHEET_ID;
+    if (!spreadsheetId) throw new Error("Workbook is not configured");
+    const email = process.env.GOOGLE_CLIENT_EMAIL;
+    const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n");
+    const localAccount = process.env.NEXSTATS_LOCAL_IMPERSONATE;
+    const provider = process.env.NEXSTATS_GOOGLE_PROVIDER;
+    if (process.env.VERCEL && provider && email) {
+        const auth = new IdentityPoolClient({
+            audience: provider,
+            subject_token_type: "urn:ietf:params:oauth:token-type:jwt",
+            token_url: "https://sts.googleapis.com/v1/token",
+            service_account_impersonation_url: "https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/" + encodeURIComponent(email) + ":generateAccessToken",
+            subject_token_supplier: { getSubjectToken: () => getVercelOidcToken() },
+            scopes: [scope],
+        });
+        return { api: new sheets_v4.Sheets({ auth }).spreadsheets, spreadsheetId };
+    }
+    const auth = localAccount && !process.env.VERCEL
+        ? await localIdentity(localAccount)
+        : new GoogleAuth({ scopes: [scope], credentials: email && privateKey
+            ? { client_email: email, private_key: privateKey } : undefined });
+    return { api: new sheets_v4.Sheets({ auth }).spreadsheets, spreadsheetId };
 }

@@ -2,10 +2,11 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { AuthConfig } from "@/config/authConfig";
 import { connectMongo } from "@/lib/mongo";
-import { TeamModel } from "@/models/TeamModel";
+import { editionTeamModel } from "@/models/TeamModel";
 import mongoose from "mongoose";
 
 export async function POST(req: Request) {
+    const TeamModel = editionTeamModel(req);
     const session = await getServerSession(AuthConfig);
     const role = (session?.user as any)?.role as "organizer" | "participant" | undefined;
     if (!session || role !== "organizer") {

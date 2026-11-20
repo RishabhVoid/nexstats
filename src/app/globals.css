@@ -3,14 +3,9 @@
 @tailwind utilities;
 
 :root {
-    --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, 'Apple Color Emoji', 'Segoe UI Emoji';
-    --font-title: 'Minecraftia', monospace;
-}
-
-@font-face {
-    font-family: "Minecraftia";
-    src: url("/fonts/Minecraftia-Regular.ttf") format("truetype");
-    font-display: swap;
+    --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --font-title: "Baskerville", "Iowan Old Style", Georgia, serif;
+    color-scheme: dark;
 }
 
 .mc-font {
@@ -20,31 +15,31 @@
 
 @layer base {
     :root {
-        --bg: #0b0f14;
-        --bg-2: #0f141b;
-        --bg-3: #131a23;
+        --bg: #111615;
+        --bg-2: #19201e;
+        --bg-3: #202824;
 
-        --text: #f3f7ff;
-        --text-2: #b7c2d6;
-        --text-muted: #8b99ad;
-        --text-inverse: #0b0f14;
+        --text: #f3eddd;
+        --text-2: #cec8b7;
+        --text-muted: #b2b1a5;
+        --text-inverse: #111615;
 
-        --line-1: #162130;
-        --line-2: #1c293a;
-        --line-3: #27384e;
+        --line-1: #29352f;
+        --line-2: #374139;
+        --line-3: #525a48;
 
-        --brand: #3ba55d;
-        --brand-600: #2f8a4c;
-        --brand-700: #246d3b;
-        --brand-300: #6fd38e;
-        --brand-200: #8fe1a6;
+        --brand: #d9b768;
+        --brand-600: #c6a358;
+        --brand-700: #967637;
+        --brand-300: #e3c887;
+        --brand-200: #ead49b;
 
         --gold: #f5c542;
         --red: #e25555;
         --blue: #4a72d9;
         --purple: #9d65ff;
 
-        --success: var(--brand);
+        --success: #87c69b;
         --warning: var(--gold);
         --error: var(--red);
         --info: var(--blue);
@@ -55,7 +50,7 @@
         --radius-md: 10px;
         --radius-lg: 14px;
         --gap: 14px;
-        --focus: 0 0 0 3px rgba(59, 165, 93, .2);
+        --focus: 0 0 0 3px rgba(209, 174, 98, .3);
     }
 
     html,
@@ -105,15 +100,11 @@
     }
 
     .pixel {
-        border-radius: 4px;
-        box-shadow:
-            0 0 0 2px #0b1218 inset,
-            0 0 0 3px #00000055 inset,
-            0 2px 0 0 #00000099;
+        border-radius: 8px;
     }
 
     .mc-input {
-        background: #0b1218;
+        background: #141a17;
         color: var(--text);
         border: 1px solid var(--line-2);
         border-radius: 8px;
@@ -137,7 +128,7 @@
         padding: 0.625rem 0.9rem;
         border-radius: 10px;
         border: 1px solid var(--line-2);
-        background: #0e151c;
+        background: #212923;
         color: var(--text);
         transition: transform .05s ease, box-shadow .15s ease, background .15s ease, border-color .15s ease;
     }
@@ -177,13 +168,13 @@
         padding: 0.375rem 0.625rem;
         border-radius: 999px;
         border: 1px solid var(--line-2);
-        background: #0b1218;
+        background: #141a17;
     }
 
     .role--organizer {
         background: rgba(59, 165, 93, .12);
         border-color: #1f3b28;
-        color: #8fe1a6;
+        color: #ead49b;
     }
 
     .role--coordinator {
@@ -273,3 +264,75 @@
         }
     }
 }
+.eyebrow { color: var(--brand); font: 600 .76rem/1.4 var(--font-sans); letter-spacing: .16em; text-transform: uppercase; }
+.wordmark { display: inline-flex; align-items: center; gap: .6rem; font: 2rem/1 var(--font-title); color: #f5e9ce; }
+.wordmark svg { width: 30px; height: 30px; color: var(--brand); stroke-width: 1.3; }
+.gate { display: grid; grid-template-columns: 1.15fr 1fr; min-height: 100dvh; }
+.gate-art, .ledger-banner { position: relative; isolation: isolate; background-image: linear-gradient(180deg,#11181755 0%,transparent 33%,#0a1515dd 100%),url('/nexhack-castle.webp'); background-size: cover; background-position: 45% 50%; }
+.gate-art { min-height: 600px; padding: clamp(28px,4vw,72px); display: flex; flex-direction: column; justify-content: space-between; }
+.gate-caption { border-top: 1px solid #cfb5788c; padding-top: 20px; }
+.gate-caption h1, .ledger-banner h1, .sheet-heading h2, .signin h2, .cell-dialog label { font-family: var(--font-title); font-weight: 400; }
+.gate-caption h1 { font-size: clamp(3.5rem,7.4vw,8rem); letter-spacing: -.055em; line-height: 1.1; }
+.gate-caption h1 i { color: #e6c782; }
+.gate-form { display: grid; place-items: center; padding: clamp(24px,6vw,96px); background: radial-gradient(ellipse at 100% 10%, #233029 0%,#131917 60%); }
+.signin h2 { font-size: 3.4rem; letter-spacing: -.05em; margin: 10px 0 5px; }
+.signin .mc-btn, .signin .mc-input { min-height: 45px; }
+.signin input { padding-left: 2.6rem; }
+.signin form { margin-top: 26px; }
+.ledger { display: grid; grid-template-columns: 235px minmax(0,1fr); min-height: 100dvh; }
+.ledger-side { background: #17231e; border-right: 1px solid #425041; padding: 32px 18px; }
+.ledger-side .wordmark { margin: 0 10px 45px; }
+.ledger-side > label { display:block; padding: 0 12px; margin-bottom: 14px; }
+.ledger-side nav, .ledger-links { display: grid; gap: 3px; }
+.ledger-side nav button, .ledger-links a, .ledger-links button { display:flex; gap: 10px; align-items: center; text-align:left; font-size:.91rem; padding: 9px 12px; border-radius: 6px; }
+.ledger-side nav button svg { color: #c0b38c; flex-shrink:0; }
+.ledger-side nav button[aria-current], .ledger-side nav button:hover, .ledger-links a:hover { background: #2c392f; color: #f7daa0; }
+.ledger-links { border-top: 1px solid var(--line-2); margin-top: 20px; padding-top: 15px; color: var(--text-2); }
+.ledger-side select { display: none; }
+.ledger-main { min-width: 0; }
+.ledger-banner { padding: 44px clamp(24px,5vw,76px); background-image: linear-gradient(90deg,#101a16f2 4%,#14231cc7 43%,#15251a22),url('/nexhack-castle.webp'); background-position:center 42%; border-bottom: 1px solid #77643e; }
+.ledger-banner h1 { font-size: clamp(2.8rem,5vw,5rem); line-height: 1.1; letter-spacing: -.045em; margin-top: 8px; }
+.ledger-panel { padding: 34px clamp(18px,3.5vw,60px) 55px; }
+.sheet-heading, .sheet-tools, .sheet-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.sheet-heading h2 { font-size: clamp(2rem,3vw,3rem); letter-spacing: -.035em; }
+.roster-counts { display: flex; gap: 24px; color: var(--text-2); margin: 12px 0; }
+.roster-counts b { font: 1.8rem var(--font-title); color: #e7c885; }
+.sheet-tools { margin: 23px 0 14px; flex-wrap: wrap; }
+.sheet-tools span, .sheet-footer { color: var(--text-muted); font-size:.85rem; }
+.search-box { display:flex; align-items:center; gap:10px; background: var(--bg-2); border:1px solid var(--line-2); padding:8px 12px; border-radius:6px; }
+.search-box input { background: transparent; min-width: 0; width: 100%; }
+.grid-scroll { overflow-x:auto; border:1px solid var(--line-2); border-radius: 8px; background: var(--bg-2); }
+.grid-scroll table { width:100%; border-collapse:collapse; text-align:left; font-size:.91rem; }
+.grid-scroll td, .grid-scroll th { border-bottom:1px solid var(--line-1); }
+.grid-scroll thead { background: #2a352d; color:#ebd8ac; }
+.grid-scroll th { padding:12px; white-space:nowrap; font-weight:500; }
+.grid-scroll tbody th { color: var(--text-muted); font-size:.78rem; }
+.grid-scroll td button, .grid-scroll td span { display:block; width:100%; min-width:65px; text-align:left; padding:10px 12px; white-space:nowrap; }
+.grid-scroll td button:hover { background:#354238; }
+.grid-scroll .confirmed { color:#a9d6b5; }
+.sheet-footer { margin-top:14px; }.sheet-footer > div {display:flex;gap:6px;}
+button:disabled { opacity:.55; cursor: default; }
+.sheet-error { color:#ffd2bc; padding: 12px; margin: 8px 0; background:#382721; border-radius: 6px; }
+.empty-state { padding: 16px; color:var(--text-muted); }
+.cell-dialog { width:min(420px,94vw); border:1px solid #8a7753; background: var(--bg-2); color:var(--text); border-radius:12px; padding:24px; }
+.cell-dialog::backdrop { background:#060d0bbe; }
+.cell-dialog form { display:grid; gap:16px; }
+.cell-dialog label { font-size:1.8rem; }
+.cell-dialog svg { color:var(--brand); }
+.ledger select { background:var(--bg-2); border:1px solid var(--line-2); border-radius:6px; padding:10px; }
+:focus-visible { outline: 2px solid #e1c580; outline-offset:2px; }
+@media(max-width:760px) {
+    .gate, .ledger { grid-template-columns:minmax(0,1fr); }
+    .gate-art { min-height:225px; background-position:center 40%; }
+    .gate-caption {padding-top:8px;}.gate-caption h1 {font-size:3rem;}
+    .gate-form {padding:32px 24px;align-items:start;}
+    .ledger-side {padding:14px 18px;}
+    .ledger-side .wordmark {margin:0 10px 12px 0;font-size:1.7rem;}
+    .ledger-side nav, .ledger-side > label {display:none;}
+    .ledger-side select {display:block;width:100%;}
+    .ledger-links {display:flex; flex-wrap:wrap; border:0; padding:0; margin-top:10px; gap:10px;}
+    .ledger-links a, .ledger-links button {padding:2px; font-size:.84rem;}
+    .ledger-banner {padding:23px 18px;}
+    .ledger-panel {padding-top:22px;}
+}
+.archive-link { display:inline-block; margin-top:2rem; color:var(--text-muted); font-size:.875rem; text-decoration:underline; text-underline-offset:4px; }

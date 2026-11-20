@@ -1,5 +1,7 @@
 "use client";
 
+import { useEdition } from "@/hooks/useEdition";
+
 import { useEffect, useMemo, useState, useCallback } from "react";
 import type { TeamType } from "@/types/TeamType";
 
@@ -27,6 +29,7 @@ function b64decode(s: string) {
 }
 
 export function useTeamCache(email: string | null | undefined) {
+    const { api } = useEdition();
     const [team, setTeam] = useState<TeamType | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -36,11 +39,11 @@ export function useTeamCache(email: string | null | undefined) {
         if (!normalizedEmail) return [];
         const keys: string[] = [];
         for (let i = 0; i < NUM_KEYS; i++) {
-            const h = await sha256(`${SALT}:${i}:${normalizedEmail}`);
+            const h = await sha256(`${SALT}:${api}:${i}:${normalizedEmail}`);
             keys.push(`nx:${h.slice(0, 24)}`);
         }
         return keys;
-    }, [normalizedEmail]);
+    }, [normalizedEmail, api]);
 
     const encodePayload = useCallback(async (data: TeamType) => {
         const raw = JSON.stringify(data);
@@ -91,9 +94,8 @@ export function useTeamCache(email: string | null | undefined) {
             if (cached) {
                 setTeam(cached);
                 setLoading(false);
-                return;
             }
-            const res = await fetch("/api/teams/by-email", { cache: "no-store" });
+            const res = await fetch(api + "/teams/by-email", { cache: "no-store" });
             if (!res.ok) throw new Error("Could not load team");
             const j = await res.json();
             await writeAll(keys, j.team);
@@ -103,7 +105,7 @@ export function useTeamCache(email: string | null | undefined) {
         } finally {
             setLoading(false);
         }
-    }, [deriveKeys, readAny, writeAll, normalizedEmail]);
+    }, [deriveKeys, readAny, writeAll, normalizedEmail, api]);
 
     useEffect(() => {
         refresh();
