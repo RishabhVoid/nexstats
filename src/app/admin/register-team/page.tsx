@@ -22,14 +22,16 @@ export default function Register() {
     const [activeResult, setActiveResult] = useState(0);
     const searchBox = useRef<HTMLDivElement>(null);
     const searchInput = useRef<HTMLInputElement>(null);
+    const saveButton = useRef<HTMLButtonElement>(null);
+    const focusSave = useRef(false);
     const searchId = useId();
     const [newTeam, setNewTeam] = useState(false);
     const [teamName, setTeamName] = useState("");
     const [selected, setSelected] = useState<AttendanceTeam>();
     const [members, setMembers] = useState<string[]>(["", "", "", ""]);
-    const [attendance, setAttendance] = useState<Attendance>("Absent");
-    const [collegeId, setCollegeId] = useState(false);
-    const [kit, setKit] = useState(false);
+    const [attendance, setAttendance] = useState<Attendance>("Present");
+    const [collegeId, setCollegeId] = useState(true);
+    const [kit, setKit] = useState(true);
     const [contact, setContact] = useState("");
     const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "added" | "error">("idle");
     const busy = saveState === "saving";
@@ -42,16 +44,17 @@ export default function Register() {
     const dirty = !!selected && (JSON.stringify(members) !== JSON.stringify(selected.member_slots) || attendance !== (selected.attendance || "Absent") ||
         collegeId !== selected.college_id || kit !== selected.kit_distribution || contact !== defaultContact(selected));
 
-    const pick = useCallback((team: AttendanceTeam) => {
+    const pick = useCallback((team: AttendanceTeam, forCheckIn = true) => {
         setNewTeam(false);
         setDetailsOpen(false);
         setQuery("");
         setSearchOpen(false);
         setSelected(team);
         setMembers([...team.member_slots]);
-        setAttendance(team.attendance || "Absent");
-        setCollegeId(team.college_id);
-        setKit(team.kit_distribution);
+        setAttendance(forCheckIn ? "Present" : team.attendance || "Absent");
+        setCollegeId(forCheckIn || team.college_id);
+        setKit(forCheckIn || team.kit_distribution);
+        focusSave.current = forCheckIn;
         setContact(defaultContact(team));
         setSaveState("idle");
         setSaveError("");
@@ -59,7 +62,7 @@ export default function Register() {
 
     const resetForm = useCallback((adding = false) => {
         setSelected(undefined); setDetailsOpen(false); setNewTeam(adding); setTeamName("");
-        setMembers(["", "", "", ""]); setAttendance("Absent"); setCollegeId(false); setKit(false); setContact("");
+        setMembers(["", "", "", ""]); setAttendance("Present"); setCollegeId(true); setKit(true); setContact("");
         setQuery(""); setSearchOpen(false); setActiveResult(0); setSaveState("idle"); setSaveError("");
     }, []);
 
@@ -86,8 +89,14 @@ export default function Register() {
     useEffect(() => {
         if (!selected || !teams || busy || dirty || query || detailsOpen) return;
         const latest = teams.find(team => team.team_uuid === selected.team_uuid);
-        if (latest && JSON.stringify(latest) !== JSON.stringify(selected)) pick(latest);
+        if (latest && JSON.stringify(latest) !== JSON.stringify(selected)) pick(latest, false);
     }, [selected, teams, busy, dirty, query, detailsOpen, pick]);
+
+    useEffect(() => {
+        if (!focusSave.current || !saveButton.current || saveButton.current.disabled) return;
+        focusSave.current = false;
+        saveButton.current.focus({ preventScroll: true });
+    });
 
     useEffect(() => {
         if (!saved) return;
@@ -195,7 +204,7 @@ export default function Register() {
                                     {selected && !selected.team_lead?.phone_number && <small>Number not available. Enter it here.</small>}</div>
                             </div>
                         </fieldset>
-                        <div className="editor-actions"><button type="submit" disabled={busy || saved || !active}
+                        <div className="editor-actions"><button ref={saveButton} type="submit" disabled={busy || saved || !active}
                             className="mc-btn mc-btn--primary checkin-submit" data-saving={busy} data-saved={saved} aria-live="polite" aria-atomic="true">
                             {busy ? <Loader2 size={16} className="checkin-save-spinner" aria-hidden="true"/> : saved ? <Check size={16} aria-hidden="true"/> : null}
                             {busy ? newTeam ? "Adding…" : "Saving…" : saved ? saveState === "added" ? "Added" : "Saved" : saveState === "error" ? newTeam ? "Retry Check In" : "Retry save" : newTeam ? "Add Check In" : "Save check-in"}
