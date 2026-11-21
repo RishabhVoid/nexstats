@@ -84,14 +84,14 @@ export function useTeamCache(email: string | null | undefined) {
         for (const k of keys) localStorage.removeItem(k);
     }, [deriveKeys]);
 
-    const refresh = useCallback(async () => {
+    const refresh = useCallback(async (background = false) => {
         if (!normalizedEmail) return;
-        setLoading(true);
+        if (!background) setLoading(true);
         setError(null);
         try {
             const keys = await deriveKeys();
             const cached = await readAny(keys);
-            if (cached) {
+            if (cached && !background) {
                 setTeam(cached);
                 setLoading(false);
             }
@@ -103,7 +103,7 @@ export function useTeamCache(email: string | null | undefined) {
         } catch (e: any) {
             setError(e.message || "Error");
         } finally {
-            setLoading(false);
+            if (!background) setLoading(false);
         }
     }, [deriveKeys, readAny, writeAll, normalizedEmail, api]);
 

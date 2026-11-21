@@ -2,6 +2,7 @@ export type TeamMemberType = {
     email: string;
     name: string;
     phone?: string;
+    college?: string;
     is_leader: boolean;
 };
 
@@ -14,6 +15,8 @@ export type TeamType = {
     assigned_block?: string;
     assigned_floor?: string;
     assigned_room_no?: string;
+    room_status?: "assigned" | "unassigned" | "ambiguous";
+    attendance?: "" | "Present" | "Absent";
     assigned_desk?: string;
     college_id: boolean,
     aadhar_id: boolean,

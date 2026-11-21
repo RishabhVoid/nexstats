@@ -352,7 +352,7 @@ button:disabled { opacity:.55; cursor: default; }
 @font-face { font-family: "Cinzel"; src: url("/fonts/Cinzel-Variable.ttf") format("truetype"); font-weight: 400 900; font-display: swap; }
 @font-face { font-family: "Source Sans 3"; src: url("/fonts/SourceSans3-Variable.ttf") format("truetype"); font-weight: 200 900; font-display: swap; }
 
-.current-admin, .wizard-gate, .wizard-candidate {
+.current-admin, .wizard-gate, .wizard-candidate, .candidate-pass {
     --font-title: "Cinzel", "Iowan Old Style", Georgia, serif;
     --font-sans: "Source Sans 3", "Segoe UI", sans-serif;
     --bg: #e9dfc9; --bg-2: #fbf5e7; --bg-3: #eee1c6;
@@ -646,3 +646,48 @@ button:disabled { opacity:.55; cursor: default; }
 .member-profile-actions .mc-btn { display: inline-flex; align-items: center; gap: 7px; min-height: 34px; padding: 6px 12px; }
 .member-edit-button { display: inline-flex; align-items: center; gap: 5px; margin-top: 13px; }
 .member-profile-editor .sheet-error { font-size: 13px; margin: 0; }
+
+
+.candidate-pass { height: 100dvh; display: flex; flex-direction: column; overflow: hidden; background: #f1e9d8; }
+.candidate-header { flex-shrink: 0; border-top: 3px solid #a88a50; border-bottom: 1px solid #d3c4a7; background: #faf5e9; }
+.candidate-header-inner { max-width: 1380px; margin: auto; padding: 15px 30px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.candidate-brand { display: flex; align-items: center; gap: 10px; color: #663444; font: 600 25px/1.2 var(--font-title); }
+.candidate-brand svg { width: 27px; height: 27px; stroke-width: 1.3; }
+.candidate-header-actions { display: flex; align-items: center; gap: 26px; color: #89765c; font-size: 13px; }
+.candidate-button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 8px 12px; border: 1px solid #cabb9d; border-radius: 4px; background: #fffaf0; color: #614333; font: 600 14px/1.2 var(--font-sans); }
+.candidate-button:hover { background: #eee1ca; }.candidate-pass :focus-visible { outline: 2px solid #987239; outline-offset: 3px; }.candidate-button:disabled { opacity: .6; cursor: wait; }
+.candidate-layout { width: calc(100% - 60px); max-width: 1320px; max-height: min(650px,calc(100dvh - 118px)); margin: auto; display: grid; grid-template-columns: 285px minmax(0,1fr); flex: 1; min-height: 0; border: 1px solid #d0bd9c; border-radius: 8px; background: #fff9ed; box-shadow: 0 12px 35px #6c4d2920; overflow: hidden; }
+.candidate-eyebrow { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .14em; }
+.candidate-room { min-height: 0; overflow-y: auto; padding: 28px; display: flex; flex-direction: column; border-right: 1px dashed #ae8465; background: #502c39; color: #fff5df; }
+.candidate-room .candidate-eyebrow { display: flex; align-items: center; gap: 10px; color: #e9c98b; }
+.candidate-room-number { margin: 27px 0 9px; font: 600 clamp(64px,7vw,102px)/1 var(--font-sans); letter-spacing: -.04em; overflow-wrap: anywhere; }
+.candidate-room-number.room-pending { font-size: 46px; letter-spacing: -.02em; }.candidate-room-caption { font-size: 14px; color: #e2c8c0; line-height: 1.5; }
+.candidate-progress { margin-top: auto; padding-top: 30px; }
+.candidate-progress li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 0; border-top: 1px solid #855c664d; font-size: 14px; color: #e2c8c0; }
+.candidate-progress strong { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; color: #f5daa6; padding: 3px 6px; border: 1px solid #ab855255; border-radius: 3px; white-space: nowrap; }
+.candidate-progress strong[data-complete="true"] { background: #daead7; border-color: #daead7; color: #274b31; }
+.candidate-room-note { margin-top: 15px; border-top: 1px dashed #b98d7566; padding-top: 18px; color: #e2c8c0; font-size: 12px; line-height: 1.5; }
+.candidate-manifest { min-width: 0; min-height: 0; display: flex; flex-direction: column; padding: 28px; }
+.candidate-team-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 0 25px; flex-shrink: 0; }
+.candidate-team-heading .candidate-eyebrow { color: #8a6c44; margin-bottom: 6px; }.candidate-team-heading h2 { color: #3e2d26; font: 500 clamp(27px,3.3vw,43px)/1.2 var(--font-title); overflow-wrap: anywhere; }
+.candidate-member-count { display: flex; align-items: center; gap: 8px; color: #6c5036; font: 500 29px/1 var(--font-title); white-space: nowrap; }.candidate-member-count > span { font: 14px/1.4 var(--font-sans); color: #89735a; }
+.candidate-column-labels, .candidate-member { display: grid; grid-template-columns: minmax(125px,1fr) minmax(155px,1.1fr) minmax(130px,1fr); gap: 20px; }
+.candidate-column-labels { border-top: 1px solid #bfa986; border-bottom: 1px solid #d5c4a5; padding: 12px 0; flex-shrink: 0; color: #8d775c; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; }
+.candidate-member-list { flex: 1; min-height: 0; overflow-y: auto; padding: 0 4px; margin: 0 -4px; }
+.candidate-member { padding: 24px 0; border-bottom: 1px solid #d9cbae; align-items: start; }
+.candidate-member-identity { display: flex; gap: 11px; min-width: 0; }.candidate-avatar { width: 35px; height: 35px; flex-shrink: 0; display: grid; place-items: center; background: #e7d8bc; border: 1px solid #ccba97; border-radius: 50%; color: #806239; font: 600 12px var(--font-sans); }
+.candidate-member h3 { font-size: 16px; font-weight: 600; line-height: 1.25; color: #433126; overflow-wrap: anywhere; }.candidate-member-identity p { display: flex; align-items: center; flex-wrap: wrap; gap: 5px 7px; margin-top: 5px; font-size: 12px; color: #8c775c; }.candidate-you { padding: 1px 5px; border: 1px solid #b5c5af; border-radius: 3px; color: #36543c; background: #e4eadb; font-size: 10px; line-height: 1.5; }
+.candidate-member-contact { display: grid; gap: 7px; min-width: 0; font-size: 14px; color: #6a503a; }.candidate-member-contact a { display: flex; align-items: start; gap: 6px; overflow-wrap: anywhere; }.candidate-member-contact a svg { flex-shrink: 0; margin-top: 3px; color: #987e5c; }.candidate-member-contact a:hover { text-decoration: underline; text-underline-offset: 3px; }.candidate-member-contact > span { color: #97846c; font-size: 12px; }
+.candidate-member-college { display: flex; align-items: start; gap: 7px; font-size: 14px; color: #796348; line-height: 1.5; overflow-wrap: anywhere; }.candidate-member-college svg { flex-shrink: 0; margin-top: 3px; color: #a38960; }.candidate-member-college.is-missing { color: #97846c; }
+.candidate-manifest-footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 16px; flex-shrink: 0; padding-top: 18px; font-size: 12px; color: #8c775c; }.candidate-manifest-footer > span:last-child { font-size: 11px; color: #9a876c; }
+.candidate-organizer-note { flex-shrink: 0; max-height: 100px; overflow: auto; margin-top: 14px; padding: 12px 14px; background: #e9ddc5; border-left: 2px solid #b18a43; font-size: 13px; color: #6d5237; }.candidate-organizer-note h3 { font-weight: 600; margin-bottom: 3px; }.candidate-organizer-note p { white-space: pre-wrap; }
+.candidate-notice { margin-bottom: 14px; padding: 9px 12px; border: 1px solid #cba786; background: #f1dfca; font-size: 13px; color: #83443d; flex-shrink: 0; }
+.candidate-member-skeleton { height: 106px; display: flex; align-items: center; gap: 20px; border-bottom: 1px solid #d9cbae; }.candidate-member-skeleton i { width: 35px; height: 35px; border-radius: 50%; background: #e3d5bb; }.candidate-member-skeleton span { height: 12px; width: 28%; border-radius: 3px; background: #e3d5bb; }
+.candidate-load-error { margin: auto; max-width: 460px; padding: 30px; color: #704637; }.candidate-load-error h1 { font: 500 25px var(--font-title); }.candidate-load-error p { margin: 12px 0 20px; font-size: 14px; }
+@media (max-width:1100px) { .candidate-layout { width: calc(100% - 48px); grid-template-columns: 240px minmax(0,1fr); }.candidate-header-inner { padding-inline: 24px; }.candidate-manifest { padding: 24px; }.candidate-room { padding: 23px; }.candidate-column-labels, .candidate-member { grid-template-columns: minmax(115px,1fr) minmax(135px,1.15fr) minmax(110px,1fr); gap: 14px; }.candidate-member-identity { gap: 8px; }.candidate-avatar { width: 30px; height: 30px; font-size: 10px; } }
+@media (max-width:760px) {
+    .candidate-header-inner { padding: 14px 18px; }.candidate-brand { font-size: 21px; gap: 7px; }.candidate-brand svg { width: 23px; height: 23px; }.candidate-header-actions > span { display: none; }.candidate-button { padding: 7px 10px; font-size: 12px; }
+    .candidate-layout { display: flex; flex-direction: column; width: 100%; max-height: none; margin: 0; gap: 23px; padding: 20px; border: 0; border-radius: 0; background: transparent; box-shadow: none; overflow-y: auto; }.candidate-room { flex-shrink: 0; padding: 20px; border: 1px solid #693e4b; border-radius: 6px; }.candidate-room-hero { display: grid; grid-template-columns: 1fr auto; gap: 7px 18px; align-items: center; }.candidate-room-number { grid-column: 2; grid-row: 1 / 3; margin: 0; font-size: 57px; }.candidate-room-number.room-pending { font-size: 32px; }.candidate-room-caption { font-size: 12px; max-width: 170px; }.candidate-room .candidate-eyebrow { font-size: 10px; gap: 7px; }
+    .candidate-progress { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; margin: 19px 0 0; padding: 13px 0 0; border-top: 1px solid #855c6666; }.candidate-progress li { flex-direction: column; align-items: start; padding: 0; gap: 7px; border: 0; font-size: 11px; }.candidate-progress strong { font-size: 10px; padding: 2px 4px; gap: 3px; }.candidate-room-note { font-size: 11px; margin-top: 14px; padding-top: 12px; }
+    .candidate-manifest { overflow: visible; flex-shrink: 0; padding: 2px 0 0; }.candidate-team-heading { padding-bottom: 18px; }.candidate-team-heading h2 { font-size: 30px; }.candidate-member-count { font-size: 22px; }.candidate-member-count > span { font-size: 12px; }.candidate-column-labels { display: none; }.candidate-member-list { overflow: visible; flex: none; border-top: 1px solid #bfa986; }.candidate-member { grid-template-columns: minmax(0,1fr); gap: 9px; padding: 18px 0; }.candidate-avatar { width: 35px; height: 35px; font-size: 12px; }.candidate-member-identity { gap: 11px; }.candidate-member-contact { margin-left: 46px; display: flex; flex-wrap: wrap; gap: 7px 15px; font-size: 13px; }.candidate-member-college { margin-left: 46px; font-size: 12px; }.candidate-manifest-footer { padding-top: 14px; }
+}

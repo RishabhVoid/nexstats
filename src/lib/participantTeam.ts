@@ -15,9 +15,9 @@ export async function participantTeamForEmail(email: string): Promise<TeamType |
         id: team.team_uuid, name: team.team_name, emails: team.members.flatMap(member => member.email ? [member.email] : []),
         members_count: team.members.length,
         members_data: team.members.map((member, index) => ({
-            name: member.first_name, email: member.email || "", phone: member.phone_number || "", is_leader: index === 0,
+            name: member.first_name, email: member.email || "", phone: member.phone_number || "", college: member.college || "", is_leader: index === 0,
         })),
-        assigned_room_no: team.room, assigned_block: "", assigned_floor: "", assigned_desk: "",
+        assigned_room_no: team.room, room_status: team.room_status, attendance: team.attendance, assigned_block: "", assigned_floor: "", assigned_desk: "",
         college_id: team.college_id, aadhar_id: false, kit_distribution: team.kit_distribution,
         emergency_contact: team.emergency_contact, status: { state: "active", note: "" },
         createdAt: syncedAt, updatedAt: syncedAt,
