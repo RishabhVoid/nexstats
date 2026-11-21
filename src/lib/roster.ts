@@ -133,9 +133,12 @@ export async function saveAttendance(edit: AttendanceEdit, newTeamName?: string)
     await previous;
     try {
         const { api, spreadsheetId, values, rooms, teams, headerIndex } = await readSnapshot();
-        const { data: workbook } = await api.get({ spreadsheetId, ranges: [rosterRange],
-            fields: "sheets(properties(sheetId,title,gridProperties))" });
-        const tab = workbook.sheets?.find(sheet => sheet.properties?.title === rosterTab)?.properties;
+        const formatFields = "borders,textFormat,horizontalAlignment,verticalAlignment,wrapStrategy,numberFormat";
+        const { data: workbook } = await api.get({ spreadsheetId,
+            ranges: newTeamName ? ["'RSVP Teams'!A" + (headerIndex + 2) + ":J" + (headerIndex + 2)] : [rosterRange],
+            fields: "sheets(properties(sheetId,title,gridProperties)" + (newTeamName ? ",data(rowData(values(userEnteredFormat(" + formatFields + "))))" : "") + ")" });
+        const template = workbook.sheets?.find(sheet => sheet.properties?.title === rosterTab);
+        const tab = template?.properties;
         if (tab?.sheetId == null) throw new AttendanceError(503, "RSVP Teams is unavailable.");
         const sheetId = tab.sheetId;
         const requests: sheets_v4.Schema$Request[] = [];
@@ -157,14 +160,12 @@ export async function saveAttendance(edit: AttendanceEdit, newTeamName?: string)
                 requests.push({ appendDimension: { sheetId, dimension: "ROWS", length: rowIndex - (tab.gridProperties?.rowCount || 0) + 1 } });
             }
             const destination = { sheetId, startRowIndex: rowIndex, endRowIndex: rowIndex + 1, startColumnIndex: 0, endColumnIndex: 10 };
-            // Copy native dropdown chips and colors without introducing validation rules via the API.
-            for (const pasteType of ["PASTE_FORMAT", "PASTE_DATA_VALIDATION"]) {
-                requests.push({ copyPaste: { source: { ...destination, startRowIndex: headerIndex + 1, endRowIndex: headerIndex + 2 }, destination, pasteType } });
-            }
-            requests.push({ repeatCell: { range: destination,
-                cell: { userEnteredFormat: { backgroundColor: { red: 1, green: 1, blue: 1 } } }, fields: "userEnteredFormat.backgroundColor" } });
+            // Native validation preserves chip colors. Copy only cell styling that cannot replace fills or conditional rules.
+            requests.push({ copyPaste: { source: { ...destination, startRowIndex: headerIndex + 1, endRowIndex: headerIndex + 2 }, destination, pasteType: "PASTE_DATA_VALIDATION" } });
+            const styles = template?.data?.[0]?.rowData?.[0]?.values || [];
             requests.push({ updateCells: { start: { sheetId, rowIndex, columnIndex: 0 },
-                rows: [{ values: updatedRow.map(value => ({ userEnteredValue: { stringValue: value } })) }], fields: "userEnteredValue" } });
+                rows: [{ values: updatedRow.map((value, col) => ({ userEnteredValue: { stringValue: value }, userEnteredFormat: styles[col]?.userEnteredFormat || {} })) }],
+                fields: "userEnteredValue," + formatFields.split(",").map(field => "userEnteredFormat." + field).join(",") } });
             requests.push({ setBasicFilter: { filter: { range: { sheetId, startRowIndex: headerIndex, endRowIndex: rowIndex + 1, startColumnIndex: 0, endColumnIndex: 10 } } } });
             values.push(updatedRow);
         } else {

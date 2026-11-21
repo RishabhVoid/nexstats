@@ -57,6 +57,12 @@ export default function Register() {
         setSaveError("");
     }, []);
 
+    const resetForm = useCallback((adding = false) => {
+        setSelected(undefined); setDetailsOpen(false); setNewTeam(adding); setTeamName("");
+        setMembers(["", "", "", ""]); setAttendance("Absent"); setCollegeId(false); setKit(false); setContact("");
+        setQuery(""); setSearchOpen(false); setActiveResult(0); setSaveState("idle"); setSaveError("");
+    }, []);
+
     useEffect(() => {
         if (!teams || opened.current) return;
         opened.current = true;
@@ -86,6 +92,7 @@ export default function Register() {
     useEffect(() => {
         if (!saved) return;
         if (dirty) { setSaveState("idle"); return; }
+        searchInput.current?.focus();
         const timer = window.setTimeout(() => setSaveState("idle"), 2000);
         return () => window.clearTimeout(timer);
     }, [saved, dirty]);
@@ -98,6 +105,7 @@ export default function Register() {
             setSaveError("Enter at least two member names.");
             return;
         }
+        const creating = newTeam;
         setSaveState("saving");
         setSaveError("");
         try {
@@ -109,8 +117,8 @@ export default function Register() {
             const data = await response.json();
             if (!response.ok) { if (response.status === 409) refresh(); throw new Error(data.message); }
             updateTeam(data.team);
-            pick(data.team);
-            setSaveState(newTeam ? "added" : "saved");
+            resetForm();
+            setSaveState(creating ? "added" : "saved");
         } catch (error) {
             setSaveState("error");
             setSaveError(error instanceof Error ? error.message : "Could not save. Your edits are still here.");
@@ -153,11 +161,7 @@ export default function Register() {
                     </div>}
                 </div>
                 <span className="checkin-roster-count">{teams ? teams.length + " teams" : "Loading roster…"}</span>
-                <div><button className="mc-btn mc-btn--primary" disabled={busy} onClick={() => {
-                        setSelected(undefined); setDetailsOpen(false); setNewTeam(true); setTeamName(""); setMembers(["", "", "", ""]);
-                        setAttendance("Absent"); setCollegeId(false); setKit(false); setContact("");setQuery("");setSearchOpen(false);
-                        setSaveState("idle"); setSaveError("");
-                    }}><Plus size={16} aria-hidden="true"/>Add team</button></div>
+                <div><button className="mc-btn mc-btn--primary" disabled={busy} onClick={() => resetForm(true)}><Plus size={16} aria-hidden="true"/>Add team</button></div>
             </div>
             {error && <p role="alert" className="sheet-error">{error}</p>}
             <div className="checkin-layout">
