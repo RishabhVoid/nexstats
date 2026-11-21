@@ -1,8 +1,7 @@
 import type { AuthOptions, Session, User } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 import Credentials from "next-auth/providers/credentials";
-import { connectMongo } from "@/lib/mongo";
-import { TeamModel } from "@/models/TeamModel";
+import { participantTeamForEmail } from "@/lib/participantTeam";
 import crypto from "crypto";
 
 type Role = "organizer" | "participant";
@@ -48,8 +47,7 @@ async function verifyUser(email: string, password: string, role: Role) {
         if (!found) return null;
         return { id: "org_" + crypto.createHash("sha1").update(email).digest("hex").slice(0, 12), name: "Organizer", email, role: "organizer" as Role };
     } else {
-        await connectMongo();
-        const team = await TeamModel.findOne({ emails: email }).lean();
+        const team = await participantTeamForEmail(email);
         if (!team) return null;
         return { id: "usr_" + crypto.createHash("sha1").update(email).digest("hex").slice(0, 12), name: email.split("@")[0], email, role: "participant" as Role };
     }

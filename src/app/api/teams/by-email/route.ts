@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { participantTeamForEmail } from "@/lib/participantTeam";
 import { getServerSession } from "next-auth";
 import { AuthConfig } from "@/config/authConfig";
 import { connectMongo } from "@/lib/mongo";
@@ -11,6 +12,12 @@ export async function GET(req: Request) {
     if (!session || !email) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     const archive = new URL(req.url).pathname.startsWith("/api/archive-nexhack-one/");
     if (session.user.role !== "participant" || archive !== (session.user.edition === "one")) return NextResponse.json({ message: "Access denied" }, {status:403});
+    if (!archive) {
+        const team = await participantTeamForEmail(email);
+        return NextResponse.json(team ? { team } : { message: "Team not found" }, {
+            status: team ? 200 : 404, headers: { "Cache-Control": "private, no-store" },
+        });
+    }
     await connectMongo();
     const team = await TeamModel.findOne({ emails: email }).lean();
     if (!team) return NextResponse.json({ message: "Team not found" }, { status: 404 });

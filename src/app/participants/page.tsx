@@ -147,8 +147,8 @@ export default function Participants() {
                                         <div className="text-muted text-sm">Includes leader</div>
                                     </div>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        {team.members_data.map(m => (
-                                            <div key={m.email} className="surface border border-2 rounded-lg p-3 pixel">
+                                        {team.members_data.map((m, index) => (
+                                            <div key={index + ":" + m.email} className="surface border border-2 rounded-lg p-3 pixel">
                                                 <div className="flex items-start gap-3">
                                                     {getProfileImage(m.email) ? (
                                                         <img
