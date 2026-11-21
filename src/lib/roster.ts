@@ -104,6 +104,33 @@ function parseRoster(values: unknown[][], rooms: RoomMap): Roster {
         };
     });
 }
+function statusChipRequests(sheet: sheets_v4.Schema$Sheet, rowIndex: number, firstDataRow: number): sheets_v4.Schema$Request[] {
+    const sheetId = sheet.properties!.sheetId!;
+    return [6, 7, 8].map(col => {
+        const expected = col === 6 ? ["Present", "Absent"] : ["Yes", "No"];
+        const sources: number[] = [];
+        for (const grid of sheet.data || []) {
+            const relativeCol = col - (grid.startColumn || 0);
+            if (relativeCol < 0) continue;
+            const rows = grid.rowData || [];
+            for (let offset = 0; offset < rows.length; offset++) {
+                const row = rows[offset];
+                const sourceRow = (grid.startRow || 0) + offset;
+                const rule = row.values?.[relativeCol]?.dataValidation;
+                const choices = rule?.condition?.values?.map(value => value.userEnteredValue) || [];
+                if (sourceRow >= firstDataRow && rule?.showCustomUi && rule.condition?.type === "ONE_OF_LIST" &&
+                    choices.length === expected.length && expected.every(value => choices.includes(value))) sources.push(sourceRow);
+            }
+        }
+        const sourceRow = sources.find(row => row !== rowIndex) ?? sources[0];
+        if (sourceRow == null) throw new AttendanceError(503, "RSVP Teams is missing a native status dropdown. Restore its chip rule in the sheet before saving.");
+        return { copyPaste: {
+            source: { sheetId, startRowIndex: sourceRow, endRowIndex: sourceRow + 1, startColumnIndex: col, endColumnIndex: col + 1 },
+            destination: { sheetId, startRowIndex: rowIndex, endRowIndex: rowIndex + 1, startColumnIndex: col, endColumnIndex: col + 1 },
+            pasteType: "PASTE_DATA_VALIDATION"
+        } };
+    });
+}
 async function readSnapshot() {
     const { api, spreadsheetId } = await workbookClient();
     const { data } = await api.values.batchGet({ spreadsheetId, ranges: [rosterRange, roomsRange] });
@@ -134,35 +161,41 @@ export async function saveAttendance(edit: AttendanceEdit, newTeamName?: string)
     try {
         const { api, spreadsheetId, values, rooms, teams, headerIndex } = await readSnapshot();
         const formatFields = "borders,textFormat,horizontalAlignment,verticalAlignment,wrapStrategy,numberFormat";
-        const { data: workbook } = await api.get({ spreadsheetId,
-            ranges: newTeamName ? ["'RSVP Teams'!A" + (headerIndex + 2) + ":J" + (headerIndex + 2)] : [rosterRange],
-            fields: "sheets(properties(sheetId,title,gridProperties)" + (newTeamName ? ",data(rowData(values(userEnteredFormat(" + formatFields + "))))" : "") + ")" });
+        const { data: workbook } = await api.get({ spreadsheetId, ranges: [rosterRange],
+            fields: "sheets(properties(sheetId,title,gridProperties),data(startRow,startColumn,rowData(values(dataValidation))))" });
         const template = workbook.sheets?.find(sheet => sheet.properties?.title === rosterTab);
         const tab = template?.properties;
         if (tab?.sheetId == null) throw new AttendanceError(503, "RSVP Teams is unavailable.");
         const sheetId = tab.sheetId;
         const requests: sheets_v4.Schema$Request[] = [];
         let updatedRow: string[];
+        let targetRowIndex: number;
         if (newTeamName) {
             const name = newTeamName.trim();
             const existing = teams.find(team => normalizeName(team.team_name) === normalizeName(name));
             if (existing) {
                 if (existing.team_name === name && JSON.stringify(existing.member_slots) === JSON.stringify(edit.member_slots) &&
                     existing.attendance === edit.attendance && existing.college_id === edit.college_id &&
-                    existing.kit_distribution === edit.kit_distribution && existing.emergency_contact === edit.emergency_contact) return existing;
+                    existing.kit_distribution === edit.kit_distribution && existing.emergency_contact === edit.emergency_contact) {
+                    const rowIndex = values.findIndex((row, i) => i > headerIndex && teamId(row) === existing.team_uuid);
+                    await api.batchUpdate({ spreadsheetId, requestBody: { requests: statusChipRequests(template!, rowIndex, headerIndex + 1) } });
+                    return existing;
+                }
                 throw new AttendanceError(409, "A team with this name already exists. Find that team to edit it.");
             }
             const serial = Math.max(0, ...values.slice(headerIndex + 1).map(row => Number(row[0]) || 0)) + 1;
             updatedRow = [String(serial), name, ...edit.member_slots, edit.attendance,
                 edit.college_id ? "Yes" : "No", edit.kit_distribution ? "Yes" : "No", edit.emergency_contact];
             const rowIndex = values.length;
+            targetRowIndex = rowIndex;
             if (rowIndex >= (tab.gridProperties?.rowCount || 0)) {
                 requests.push({ appendDimension: { sheetId, dimension: "ROWS", length: rowIndex - (tab.gridProperties?.rowCount || 0) + 1 } });
             }
-            const destination = { sheetId, startRowIndex: rowIndex, endRowIndex: rowIndex + 1, startColumnIndex: 0, endColumnIndex: 10 };
-            // Native validation preserves chip colors. Copy only cell styling that cannot replace fills or conditional rules.
-            requests.push({ copyPaste: { source: { ...destination, startRowIndex: headerIndex + 1, endRowIndex: headerIndex + 2 }, destination, pasteType: "PASTE_DATA_VALIDATION" } });
-            const styles = template?.data?.[0]?.rowData?.[0]?.values || [];
+            // Preserve the destination fills; only copy borders, typography, alignment and number formatting.
+            const { data: formatting } = await api.get({ spreadsheetId,
+                ranges: ["'RSVP Teams'!A" + (headerIndex + 2) + ":J" + (headerIndex + 2)],
+                fields: "sheets(properties(title),data(rowData(values(userEnteredFormat(" + formatFields + ")))))" });
+            const styles = formatting.sheets?.find(sheet => sheet.properties?.title === rosterTab)?.data?.[0]?.rowData?.[0]?.values || [];
             requests.push({ updateCells: { start: { sheetId, rowIndex, columnIndex: 0 },
                 rows: [{ values: updatedRow.map((value, col) => ({ userEnteredValue: { stringValue: value }, userEnteredFormat: styles[col]?.userEnteredFormat || {} })) }],
                 fields: "userEnteredValue," + formatFields.split(",").map(field => "userEnteredFormat." + field).join(",") } });
@@ -173,11 +206,11 @@ export async function saveAttendance(edit: AttendanceEdit, newTeamName?: string)
             if (!team) throw new AttendanceError(404, "This team is no longer in RSVP Teams.");
             const rowIndex = values.findIndex((row, i) => i > headerIndex && teamId(row) === edit.team_uuid);
             const row = values[rowIndex];
+            targetRowIndex = rowIndex;
             updatedRow = [...row.slice(0, 2), ...edit.member_slots, edit.attendance,
                 edit.college_id ? "Yes" : "No",
                 edit.kit_distribution ? "Yes" : "No", edit.emergency_contact];
-            if (edit.version !== team.version) {
-                if (version(updatedRow) === team.version) return team;
+            if (edit.version !== team.version && version(updatedRow) !== team.version) {
                 throw new AttendanceError(409, "This team changed in RSVP Teams or at another desk. Search for the team again to review its latest record before saving.");
             }
             for (let col = 2; col < 10; col++) {
@@ -192,7 +225,10 @@ export async function saveAttendance(edit: AttendanceEdit, newTeamName?: string)
             }
             values[rowIndex] = updatedRow;
         }
-        if (requests.length) await api.batchUpdate({ spreadsheetId, requestBody: { requests } });
+        // Restore native chips even when the target cells were cleared or this save only changes a contact.
+        // Copy validation after writing values, without touching backgrounds or rebuilding rules through the API.
+        requests.push(...statusChipRequests(template!, targetRowIndex, headerIndex + 1));
+        await api.batchUpdate({ spreadsheetId, requestBody: { requests } });
         if (store.loading) { try { await store.loading; } catch {} }
         const updated = parseRoster(values, rooms);
         store.cached = { teams: updated, expires: Date.now() + 5 * 60_000, syncedAt: new Date().toISOString(), formatVersion: rosterFormatVersion };
