@@ -54,7 +54,7 @@ export default function Participants() {
     }
 
     return (
-        <main className="min-h-dvh bg-[var(--bg)] flex flex-col">
+        <main className={"min-h-dvh bg-[var(--bg)] flex flex-col" + (archive ? "" : " wizard-candidate")}>
             <header className="px-6 lg:px-10 py-6 border-b border-2">
                 <div className="max-w-6xl mx-auto flex items-center justify-between">
                     <div>

@@ -30,6 +30,10 @@ yarn-error.log*
 .env*.local
 nexstats-6fbef7defc7a.json
 
+# Private import backups stay on this machine; production reads participant_imports in MongoDB.
+/src/data/participant-profiles.json
+/src/data/team-lead-contacts.json
+
 # vercel
 .vercel
 

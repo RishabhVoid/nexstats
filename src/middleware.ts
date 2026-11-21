@@ -26,7 +26,7 @@ export default withAuth(req => {
     }
     if (role === "admin") return NextResponse.next();
     const allowed = role === "registerer"
-        ? path === "/admin/register-team" || (path === "/api/teams" && req.method === "POST") || path.startsWith("/api/admin/register-team/")
+        ? path === "/admin/register-team" || (path === "/api/teams" && req.method === "POST") || path.startsWith("/api/admin/register-team/") || path === "/api/admin/member-profiles"
         : path === "/participants" || path === "/api/teams/by-email" || path === "/api/getTeamData";
     if (allowed) return NextResponse.next();
     return api ? NextResponse.json({ message: "Access denied" }, { status:403 }) : redirect(home);

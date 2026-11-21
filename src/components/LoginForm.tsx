@@ -21,7 +21,6 @@ export default function LoginForm() {
     return (
         <div className="signin w-full max-w-[460px]">
             <div className="mb-6">
-                <p className="eyebrow">NexStats · Event access</p>
                 <h2 className="mc-font">Sign in</h2>
                 <div className="text-muted text-sm">{role === "organizer" ? "Open the organizer workspace." : "View your registered team."}</div>
             </div>

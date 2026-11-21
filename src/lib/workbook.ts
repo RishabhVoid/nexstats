@@ -60,27 +60,3 @@ export async function readGrid(id: number, onlyRow?: number, requiredColumns = 1
     }
     return { tab: { id, title: p.title }, columns, rows };
 }
-
-export async function saveCell(input: { id: number; row: number; col: number; value: string; version: string }) {
-    const grid = await readGrid(input.id, input.row, input.col + 1);
-    const row = grid.rows[0];
-    if (row.version !== input.version) throw new WorkbookError(409, "This row changed in Sheets. Refresh and review the latest value.");
-    const cell = row.cells[input.col];
-    if (!cell || cell.locked) throw new WorkbookError(422, "This cell is managed in Google Sheets.");
-    const { api, spreadsheetId } = await workbookClient();
-    const range = { sheetId: input.id, startRowIndex: input.row - 1, endRowIndex: input.row,
-        startColumnIndex: input.col, endColumnIndex: input.col + 1 };
-    const v = input.value;
-    if (cell.options && v && !cell.options.includes(v)) throw new WorkbookError(422, "Choose an available dropdown value.");
-    let entry: sheets_v4.Schema$ExtendedValue | undefined = v ? { stringValue: v } : undefined;
-    if (typeof cell.raw === "number" && v) {
-        if (!v.trim() || !Number.isFinite(Number(v))) throw new WorkbookError(422, "Enter a valid number.");
-        entry = { numberValue: Number(v) };
-    }
-    if (typeof cell.raw === "boolean" && v) {
-        if (!/^(true|false)$/i.test(v)) throw new WorkbookError(422, "Choose true or false.");
-        entry = { boolValue: v.toLowerCase() === "true" };
-    }
-    await api.batchUpdate({ spreadsheetId, requestBody: { requests: [{ updateCells: { range,
-        rows: [{ values: [entry ? { userEnteredValue: entry } : {}] }], fields: "userEnteredValue" } }] } });
-}

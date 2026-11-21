@@ -6,7 +6,7 @@ import SessionWrapper from "@/components/SessionWrapper";
 
 
 export const metadata: Metadata = {
-    title: "NexStats · NexHack 2.0",
+    title: "NexStats",
     description: "NexHack event operations at Geeta University",
 };
 
