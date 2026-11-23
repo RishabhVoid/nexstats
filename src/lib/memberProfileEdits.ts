@@ -1,6 +1,8 @@
 import { createHash } from "node:crypto";
 import MemberProfileEdit from "@/models/MemberProfileEdit";
 import ParticipantImport from "@/models/ParticipantImport";
+import TeamEventData from "@/models/TeamEventData";
+import { applyEventData, type TeamEventRecord } from "@/lib/teamEventData";
 import { participantProfiles, type ImportedTeam } from "@/lib/participantProfiles";
 import { connectMongo } from "@/lib/mongo";
 import { localContactNumber } from "@/lib/contactNumber";
@@ -40,17 +42,18 @@ export async function readProfileEdits(teamIds: string[]): Promise<ProfileEdit[]
     await connectMongo();
     return await MemberProfileEdit.find({ team_uuid: { $in: teamIds } }).lean().exec() as unknown as ProfileEdit[];
 }
-type ProfileData = { edits: ProfileEdit[]; imports: ImportedTeam[] };
+type ProfileData = { edits: ProfileEdit[]; imports: ImportedTeam[]; eventData?: TeamEventRecord[] };
 export async function readProfileData(teamIds: string[]): Promise<ProfileData> {
     await connectMongo();
-    const [edits, imported] = await Promise.all([
+    const [edits, imported, eventData] = await Promise.all([
         readProfileEdits(teamIds), ParticipantImport.findById("unstop-v1").lean().exec(),
+        TeamEventData.find({ _id: { $in: teamIds } }).lean().exec(),
     ]);
-    return { edits, imports: (imported as { teams?: ImportedTeam[] } | null)?.teams || [] };
+    return { edits, imports: (imported as { teams?: ImportedTeam[] } | null)?.teams || [], eventData: eventData as unknown as TeamEventRecord[] };
 }
 export function applyProfileData(team: AttendanceTeam, data: ProfileData) {
     const imported = { ...team, ...participantProfiles(team.team_uuid, team.member_slots, data.imports) };
-    return applyProfileEdits(imported, data.edits);
+    return applyProfileEdits(applyEventData(imported, data.eventData || []), data.edits);
 }
 export async function withProfileEdits(teams: AttendanceTeam[]) {
     const data = await readProfileData(teams.map(team => team.team_uuid));
@@ -82,7 +85,7 @@ export async function saveProfileEdit(team: AttendanceTeam, input: ProfileInput,
     }
     const data = await readProfileData([team.team_uuid]);
     const edits = data.edits;
-    const base = { ...team, ...participantProfiles(team.team_uuid, team.member_slots, data.imports) };
+    const base = applyEventData({ ...team, ...participantProfiles(team.team_uuid, team.member_slots, data.imports) }, data.eventData || []);
     const current = applyProfileEdits(base, edits).members.find(member => member.slot === input.slot)!;
     if (current.profile_version !== input.profile_version) {
         throw new ProfileError(409, "Someone updated these details. Cancel and reopen the member to see the latest version; your draft is still here.");

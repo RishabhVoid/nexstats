@@ -1,3 +1,5 @@
+export type InternetAccess = { username: string; password: string };
+
 export type TeamMemberType = {
     email: string;
     name: string;
@@ -8,6 +10,7 @@ export type TeamMemberType = {
 
 export type TeamType = {
     id: string;
+    internet_access?: InternetAccess;
     emails: string[];
     name: string;
     members_count: number;

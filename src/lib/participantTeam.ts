@@ -12,7 +12,7 @@ export async function participantTeamForEmail(email: string): Promise<TeamType |
     const team = matching[0];
     const syncedAt = rosterSyncedAt() || new Date().toISOString();
     return {
-        id: team.team_uuid, name: team.team_name, emails: team.members.flatMap(member => member.email ? [member.email] : []),
+        id: team.team_uuid, internet_access: team.internet_access, name: team.team_name, emails: team.members.flatMap(member => member.email ? [member.email] : []),
         members_count: team.members.length,
         members_data: team.members.map((member, index) => ({
             name: member.first_name, email: member.email || "", phone: member.phone_number || "", college: member.college || "", is_leader: index === 0,

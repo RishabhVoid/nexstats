@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { signOut, useSession } from "next-auth/react";
 import { Castle, Check, Clock3, DoorOpen, GraduationCap, Loader2, LogOut, Mail, Phone } from "lucide-react";
+import InternetAccess from "@/components/InternetAccess";
 import { useTeamCache } from "@/hooks/useTeamCache";
 
 const normalize = (value?: string | null) => value?.trim().toLowerCase() || "";
@@ -47,6 +48,7 @@ export default function CandidatePass() {
                 <ul className="candidate-progress" aria-label="Registration progress">{statusRows.map(item => <li key={item.label}>
                     <span>{item.label}</span><strong data-complete={item.complete}>{item.complete ? <Check size={14} aria-hidden="true"/> : <Clock3 size={13} aria-hidden="true"/>}{team ? item.value : "—"}</strong>
                 </li>)}</ul>
+                <InternetAccess key={team?.id} access={team?.internet_access}/>
                 <p className="candidate-room-note">{checkedIn ? "You’re all checked in. Happy hacking." : "Have your college ID ready at registration."}</p>
             </section>
             <section className="candidate-manifest" aria-labelledby="candidate-team-name">

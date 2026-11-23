@@ -3,11 +3,13 @@ import type { sheets_v4 } from "googleapis/build/src/apis/sheets";
 import { localContactNumber } from "@/lib/contactNumber";
 import { participantProfiles } from "@/lib/participantProfiles";
 import type { AttendanceMember } from "@/types/AttendanceProfile";
+import type { InternetAccess } from "@/types/TeamType";
 import { workbookClient } from "@/lib/googleSheets";
 
 export type Attendance = "" | "Present" | "Absent";
 export type AttendanceTeam = {
     team_uuid: string;
+    internet_access?: InternetAccess;
     team_name: string;
     member_slots: string[];
     members: AttendanceMember[];
@@ -28,12 +30,12 @@ export class AttendanceError extends Error {
     constructor(public status: number, message: string) { super(message); }
 }
 
-const rosterFormatVersion = 4;
+const rosterFormatVersion = 5;
 const rosterTab = "RSVP Teams";
 const rosterRange = "'RSVP Teams'!A:J";
 const roomsRange = "'Room Allocation'!A:I";
 const header = ["Sr. No.", "Team Name", "Member 1", "Member 2", "Member 3", "Member 4", "Attendance", "College ID", "Kit", "Emergency Contact"];
-type RoomAssignment = { serial: string; room: string };
+type RoomAssignment = { serial: string; room: string; members: string[]; internal: boolean };
 type RoomMap = Map<string, RoomAssignment[]>;
 type RosterStore = {
     cached?: { teams: Roster; expires: number; syncedAt?: string; formatVersion?: number };
@@ -63,11 +65,17 @@ function parseRooms(values: unknown[][]): RoomMap {
     const serialCol = columns.findIndex(name => ["s. no.", "sr. no.", "sr.no"].includes(name));
     if (nameCol < 0 || roomCol < 0) throw new AttendanceError(503, "Room Allocation columns have changed. Team Name and Class Allotment are required.");
     const rooms: RoomMap = new Map();
+    const memberCols = [1, 2, 3, 4].map(slot => columns.indexOf("member " + slot)).filter(col => col >= 0);
+    const statusCol = columns.indexOf("status");
+    let internal = false;
     for (const row of values.slice(headerIndex + 1)) {
+        if (row.some(value => normalizeName(String(value)) === "internal teams")) { internal = true; continue; }
+        if (normalizeName(String(row[statusCol] || "")) === "not confirmed") internal = false;
         const name = normalizeName(String(row[nameCol] ?? ""));
         const serial = String(row[serialCol] ?? "").trim();
         if (!name || (serialCol >= 0 && !/^\d+$/.test(serial))) continue;
-        rooms.set(name, [...(rooms.get(name) || []), { serial, room: String(row[roomCol] ?? "").trim() }]);
+        rooms.set(name, [...(rooms.get(name) || []), { serial, room: String(row[roomCol] ?? "").trim(),
+            members: memberCols.map(col => normalizeName(String(row[col] || ""))).filter(Boolean), internal }]);
     }
     return rooms;
 }
@@ -82,7 +90,10 @@ function parseRoster(values: unknown[][], rooms: RoomMap): Roster {
     const rows = normalizeRows(values);
     const headerIndex = rosterHeaderIndex(rows);
     const ids = new Set<string>();
-    return rows.slice(headerIndex + 1).filter(row => /^\d+$/.test(row[0]) && row[1]).map(row => {
+    let internal = false;
+    return rows.slice(headerIndex + 1).flatMap<AttendanceTeam>(row => {
+        if (row.some(value => normalizeName(value) === "internal teams")) { internal = true; return []; }
+        if (!/^\d+$/.test(row[0]) || !row[1]) return [];
         const id = teamId(row);
         if (ids.has(id)) throw new AttendanceError(503, "Duplicate teams in RSVP Teams.");
         ids.add(id);
@@ -90,8 +101,14 @@ function parseRoster(values: unknown[][], rooms: RoomMap): Roster {
         const member_slots = row.slice(2, 6);
         const profiles = participantProfiles(id, member_slots);
         const matchingNames = rooms.get(normalizeName(row[1])) || [];
-        const matchingSerials = matchingNames.filter(assignment => assignment.serial === row[0]);
-        const candidates = matchingSerials.length ? matchingSerials : matchingNames;
+        const sameSection = matchingNames.filter(assignment => assignment.internal === internal);
+        const pool = sameSection.length ? sameSection : matchingNames;
+        const memberKeys = new Set(member_slots.filter(Boolean).map(normalizeName));
+        const scores = pool.map(assignment => assignment.members.filter(name => memberKeys.has(name)).length);
+        const best = Math.max(0, ...scores);
+        const matchingMembers = best >= 2 ? pool.filter((_, index) => scores[index] === best) : pool;
+        const matchingSerials = matchingMembers.filter(assignment => assignment.serial === row[0]);
+        const candidates = matchingSerials.length ? matchingSerials : matchingMembers;
         const assignments = new Set(candidates.map(assignment => assignment.room));
         const room = assignments.size === 1 ? candidates[0].room : "";
         return {

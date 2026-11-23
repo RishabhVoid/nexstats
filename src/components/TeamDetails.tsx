@@ -5,6 +5,7 @@ import { Check, Pencil, X } from "lucide-react";
 import type { AttendanceTeam } from "@/lib/roster";
 import AttendanceBadge from "@/components/AttendanceBadge";
 import MemberProfile from "@/components/MemberProfile";
+import InternetAccess from "@/components/InternetAccess";
 
 import MemberProfileEditor from "@/components/MemberProfileEditor";
 import { useRoster } from "@/hooks/useRoster";
@@ -39,6 +40,7 @@ export default function TeamDetails({ team: selected, onClose, initialEditSlot, 
             <div className="team-details-summary"><AttendanceBadge value={team.attendance}/><span>Room <strong>{team.room || "Unassigned"}</strong></span>
                 <span>{team.members.length} members</span><span>Team lead: <strong>{team.members[0]?.first_name || "—"}</strong></span></div>
             <div className="team-details-body" tabIndex={0}>
+                <InternetAccess key={team.team_uuid} access={team.internet_access}/>
                 <section className="team-colleges"><h3>Colleges / organisations</h3>{colleges.length ? <ul>{colleges.map(college => <li key={college}>{college}</li>)}</ul> : <p className="profile-unavailable">College information is not available for this team.</p>}</section>
                 <div className="team-detail-members">{team.members.map((member, i) => <section key={member.slot ?? i} className="detail-member">
                     <div className="detail-member-title"><h3>{member.first_name}</h3>{i === 0 && <span>Team lead</span>}</div>

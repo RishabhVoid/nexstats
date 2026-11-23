@@ -46,7 +46,9 @@ export function useTeamCache(email: string | null | undefined) {
     }, [normalizedEmail, api]);
 
     const encodePayload = useCallback(async (data: TeamType) => {
-        const raw = JSON.stringify(data);
+        // Internet passwords remain in this session's memory, outside persistent browser caches.
+        const { internet_access, ...cached } = data;
+        const raw = JSON.stringify(cached);
         const sig = await sha1(raw);
         return `${sig}.${b64encode(raw)}`;
     }, []);
