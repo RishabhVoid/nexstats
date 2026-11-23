@@ -3,7 +3,7 @@ import { connectMongo } from "@/lib/mongo";
 import type { AttendanceTeam } from "@/lib/roster";
 import type { InternetAccess } from "@/types/TeamType";
 
-export type TeamEventRecord = { _id: string; member_names: string[]; college?: string; internet_access?: InternetAccess };
+export type TeamEventRecord = { _id: string; member_names: string[]; college?: string; room_override?: string; internet_access?: InternetAccess };
 export class EventImportError extends Error {
     constructor(public status: number, message: string) { super(message); }
 }
@@ -13,11 +13,13 @@ export function validateEventImport(input: unknown, teams: AttendanceTeam[]): Te
     if (!Array.isArray(input) || !input.length || input.length > 500) throw new EventImportError(400, "Provide 1–500 team records.");
     const roster = new Map(teams.map(team => [team.team_uuid, team]));
     const ids = new Set<string>();
+    const rooms = new Set(teams.map(team => team.room).filter(Boolean));
     return input.map(record => {
         if (!record || typeof record !== "object" || typeof record._id !== "string" || !/^[a-f0-9]{64}$/.test(record._id) ||
             ids.has(record._id) || !Array.isArray(record.member_names) || record.member_names.length !== 4 ||
             record.member_names.some((name: unknown) => typeof name !== "string" || name.length > 150) ||
             (record.college !== undefined && record.college !== "Geeta University") ||
+            (record.room_override !== undefined && (typeof record.room_override !== "string" || !rooms.has(record.room_override.trim()))) ||
             (record.internet_access !== undefined && (!record.internet_access || typeof record.internet_access.username !== "string" ||
                 !record.internet_access.username || record.internet_access.username.length > 500 || typeof record.internet_access.password !== "string" ||
                 !record.internet_access.password || record.internet_access.password.length > 500))) {
@@ -30,6 +32,7 @@ export function validateEventImport(input: unknown, teams: AttendanceTeam[]): Te
         ids.add(record._id);
         return { _id: record._id, member_names: team.member_slots,
             ...(record.college ? { college: record.college } : {}),
+            ...(record.room_override !== undefined ? { room_override: record.room_override.trim() } : {}),
             ...(record.internet_access ? { internet_access: { username: record.internet_access.username, password: record.internet_access.password } } : {}) };
     });
 }
@@ -38,7 +41,9 @@ export function applyEventData(team: AttendanceTeam, records: TeamEventRecord[])
     const record = records.find(record => record._id === team.team_uuid);
     if (!record) return team;
     const knownNames = new Set(record.member_names.filter(Boolean).map(key));
+    // Organizer room overrides stay private; the source Room Allocation sheet is read-only.
     return { ...team, internet_access: record.internet_access,
+        ...(record.room_override ? { room: record.room_override, room_status: "assigned" as const } : {}),
         members: team.members.map(member => record.college && !member.college && knownNames.has(key(member.first_name)) ? {
             ...member, college: record.college, profile_status: member.profile_status === "unmatched" ? "matched" as const : member.profile_status,
         } : member) };
