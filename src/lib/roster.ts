@@ -34,7 +34,8 @@ const rosterFormatVersion = 5;
 const rosterTab = "RSVP Teams";
 const rosterRange = "'RSVP Teams'!A:J";
 const roomsRange = "'Room Allocation'!A:I";
-const header = ["Sr. No.", "Team Name", "Member 1", "Member 2", "Member 3", "Member 4", "Attendance", "College ID", "Kit", "Emergency Contact"];
+// RSVP layout is fixed: row 3 contains labels and team data starts on row 4.
+const rosterHeaderIndex = 2;
 type RoomAssignment = { serial: string; room: string; members: string[]; internal: boolean };
 type RoomMap = Map<string, RoomAssignment[]>;
 type RosterStore = {
@@ -79,16 +80,9 @@ function parseRooms(values: unknown[][]): RoomMap {
     }
     return rooms;
 }
-function rosterHeaderIndex(rows: string[][]) {
-    const index = rows.findIndex(row => normalizeName(row[1]) === "team name");
-    if (index < 0 || header.some((name, i) => rows[index][i] !== name)) {
-        throw new AttendanceError(503, "RSVP Teams columns have changed. Check the header before saving.");
-    }
-    return index;
-}
 function parseRoster(values: unknown[][], rooms: RoomMap): Roster {
     const rows = normalizeRows(values);
-    const headerIndex = rosterHeaderIndex(rows);
+    const headerIndex = rosterHeaderIndex;
     const ids = new Set<string>();
     let internal = false;
     return rows.slice(headerIndex + 1).flatMap<AttendanceTeam>(row => {
@@ -152,8 +146,9 @@ async function readSnapshot() {
     const { api, spreadsheetId } = await workbookClient();
     const { data } = await api.values.batchGet({ spreadsheetId, ranges: [rosterRange, roomsRange] });
     const values = normalizeRows(data.valueRanges?.[0]?.values || []);
+    while (values.length <= rosterHeaderIndex) values.push(Array(10).fill(""));
     const rooms = parseRooms(data.valueRanges?.[1]?.values || []);
-    return { api, spreadsheetId, values, rooms, headerIndex: rosterHeaderIndex(values), teams: parseRoster(values, rooms) };
+    return { api, spreadsheetId, values, rooms, headerIndex: rosterHeaderIndex, teams: parseRoster(values, rooms) };
 }
 async function loadRoster() {
     const { teams } = await readSnapshot();

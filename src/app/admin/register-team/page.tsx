@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
-import { Check, DoorOpen, Loader2, Plus, Search, X } from "lucide-react";
+import { Check, DoorOpen, Loader2, Plus, Search, Wifi, X } from "lucide-react";
 import TeamDetails from "@/components/TeamDetails";
 import DeskToggle from "@/components/DeskToggle";
 import AttendanceBadge from "@/components/AttendanceBadge";
@@ -41,6 +41,7 @@ export default function Register() {
     const results = (teams || []).filter(team => q && [team.team_name, team.room, team.emergency_contact, ...(team.colleges || []), ...team.member_slots, ...team.members.flatMap(member => [member.email || "", member.phone_number || ""])].some(name => name.toLowerCase().includes(q)));
     const opened = useRef(false);
     const active = !!selected || newTeam;
+    const internetAccess = (teams?.find(team => team.team_uuid === selected?.team_uuid) || selected)?.internet_access;
     const dirty = !!selected && (JSON.stringify(members) !== JSON.stringify(selected.member_slots) || attendance !== (selected.attendance || "Absent") ||
         collegeId !== selected.college_id || kit !== selected.kit_distribution || contact !== defaultContact(selected));
 
@@ -216,6 +217,11 @@ export default function Register() {
                             <strong>{active ? selected?.room || "Unassigned" : "—"}</strong>
                             {selected?.room_status === "ambiguous" && <p>Multiple assignments. Review Room Allocation.</p>}
                             <span>{active ? members.filter(name => name.trim()).length + " team members" : "Select a team"}</span>
+                            <div className="checkin-wifi" aria-labelledby="checkin-wifi-title">
+                                <h3 id="checkin-wifi-title"><Wifi size={16} aria-hidden="true"/>Wi-Fi access</h3>
+                                <dl><div><dt>Wi-Fi ID</dt><dd>{internetAccess?.username || (active ? "Not assigned" : "—")}</dd></div>
+                                    <div><dt>Password</dt><dd>{internetAccess?.password || (active ? "Not assigned" : "—")}</dd></div></dl>
+                            </div>
                         </section>
                         <section className="paper-panel saved-record"><h2>Saved check-in</h2>
                             <dl><div><dt>Attendance</dt><dd>{selected ? selected.attendance === "Present" ? "Checked in" : selected.attendance === "Absent" ? "Absent" : "Not checked in" : "—"}</dd></div>

@@ -480,6 +480,11 @@ button:disabled { opacity:.55; cursor: default; }
 .room-pass > strong { display: block; font: 500 34px/1.2 var(--font-title); margin: 8px 0; overflow-wrap: anywhere; }
 .room-pass > span { font-size: 14px; color: #d9bd8d; }
 .room-pass p { font-size: 13px; color: #efd7a7; margin: 8px 0; }
+.checkin-wifi { margin-top: 14px; padding-top: 12px; border-top: 1px solid #b4915866; text-align: left; }
+.checkin-wifi h3 { display: flex; align-items: center; gap: 7px; margin-bottom: 9px; font: 600 13px/1.4 var(--font-sans); color: #f2dba0; }
+.checkin-wifi h3 svg { margin: 0; stroke-width: 1.6; }.checkin-wifi dl { display: grid; gap: 8px; }
+.checkin-wifi dt { color: #d9bd8d; font-size: 12px; }.checkin-wifi dd { margin-top: 2px; color: #fff8e8; font-size: 18px; font-weight: 600; overflow-wrap: anywhere; user-select: all; }
+
 .saved-record { padding: 14px; }.saved-record h2 { font-size: 16px; }
 .saved-record dl > div { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid #e2d3b4; font-size: 14px; }
 .saved-record dt { color: #877151; }.saved-record dd { font-weight: 600; text-align: right; overflow-wrap: anywhere; }
@@ -517,7 +522,8 @@ button:disabled { opacity:.55; cursor: default; }
     .dashboard-grid .room-overview { max-height: 220px; flex: none; }
     .paper-panel { padding: 12px; }.roster-filters .admin-select { flex: 1 1 130px; min-width: 0; }.roster-cards { grid-template-columns: minmax(0,1fr); }
     .checkin-layout { grid-template-columns: minmax(0,1fr); grid-template-rows: minmax(0,1fr) auto; gap: 10px; }
-    .checkin-context { display: block; overflow: visible; }.checkin-context .room-pass { padding: 8px 12px; display: flex; align-items: center; gap: 10px; text-align: left; }.checkin-context .room-pass svg { display: none; }.checkin-context .room-pass h2 { font-size: 12px; }.checkin-context .room-pass strong { margin: 0 0 0 auto; font-size: 22px; }.checkin-context .room-pass > span { display: none; }.saved-record { display: none; }.team-selection-empty { grid-column: auto; grid-row: 1/-1; }
+    .checkin-context { display: block; overflow: visible; }.checkin-context .room-pass { padding: 8px 12px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; text-align: left; }.checkin-context .room-pass svg { display: none; }.checkin-context .room-pass h2 { font-size: 12px; }.checkin-context .room-pass strong { margin: 0 0 0 auto; font-size: 22px; }.checkin-context .room-pass > span { display: none; }.saved-record { display: none; }.team-selection-empty { grid-column: auto; grid-row: 1/-1; }
+    .checkin-wifi { flex-basis: 100%; margin-top: 0; padding-top: 8px; }.checkin-wifi h3 { display: none; }.checkin-wifi dl { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }.checkin-wifi dd { font-size: 16px; }
     .checkin-toolbar { flex-wrap: wrap; gap: 8px; }.checkin-toolbar .team-search { flex-basis: 100%; }.checkin-roster-count { margin-right: auto; }
     .member-editor { gap: 8px; }.editor-title h2 { font-size: 19px; }
     .room-pass { padding-inline: 12px; }.saved-record { padding: 14px; }.saved-record dl > div { flex-direction: column; gap: 3px; }.saved-record dd { text-align: left; }
